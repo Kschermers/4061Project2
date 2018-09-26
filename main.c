@@ -37,6 +37,75 @@ void show_error_message(char * ExecName)
 
 //Write your functions here
 
+// This function will recursively build the executable files based on the initial target name
+void build_from_target(char * targetName, target_t targets[], int nTargetCount) {
+
+  printf("+++ %s IS STARTING. +++\n\n", targetName);
+
+  // Get target node number using target name
+  int targetNodeNum = find_target(targetName, targets, nTargetCount);
+
+  // Check if targetNodeNum is postive, else target doesn't exist
+  if (targetNodeNum >= 0) {
+    // Get target structure from target name
+    target_t currentTarget = targets[targetNodeNum];
+
+    // Initialize variables for target fields
+    int targetDepCount = currentTarget.DependencyCount;
+    // strcpy???
+    //char **targetDepNames = currentTarget.DependencyNames;
+    char *targetCommand = currentTarget.Command;
+    int targetStatus = currentTarget.Status;
+
+    // Take care of dependencies first
+    if (targetDepCount > 0) {
+      printf("%s has dependencies.\n\n", targetName);
+      for (int i=0; i<targetDepCount; i++) {
+        // Get dependency name from target dependencies array
+        char *childTargetName = currentTarget.DependencyNames[i];
+
+        // Check if dependency is newer/older than target file
+        // If target file is older than dependency file -> build
+        // Else, skip build
+        // How to get file pointer?
+
+        // compare_modification_time returns 1 if targetFile is newer than depFile
+        //if (compare_modification_time(targetFile, depFile) == 1) {
+          // Fork: Parent = Target, Child = Dependency
+          int pid;
+          pid = fork();
+          // Child
+          if (pid == 0) {
+            // Recursively take care of child
+            printf("Here's the child for %s\n\n", childTargetName);
+            build_from_target(childTargetName, targets, nTargetCount);
+            exit(0);
+          }
+          // Parent
+          else if (pid > 0) {
+            wait(NULL);
+            printf("%s is finished with %s.\n\n", targetName, childTargetName);
+          }
+          // Error
+          else {
+            // pid < 0 -> error
+          }
+        //}
+      }
+    }
+    else {
+      printf("%s doesn't have dependencies.\n\n", targetName);
+    }
+    // Dependencies are resolved, execute command
+    printf("Execute:\n%s\n\n", targetCommand);
+  }
+  else {
+    printf("%s is not a target - nothing to do.\n\n", targetName);
+  }
+
+  printf("--- %s IS FINISHED. ---\n\n", targetName);
+}
+
 //Phase1: Warmup phase for parsing the structure here. Do it as per the PDF (Writeup)
 void show_targets(target_t targets[], int nTargetCount)
 {
@@ -151,6 +220,11 @@ int main(int argc, char *argv[])
 	
   //Phase2: Begins ----------------------------------------------------------------------------------------------------
   /*Your code begins here*/
+
+  // Build executables from TargetName
+  printf("\nBeginning.\n\n");
+  build_from_target(TargetName, targets, nTargetCount);
+  printf("End.\n");
   
   
   
