@@ -37,9 +37,44 @@ void show_error_message(char * ExecName)
 
 //Write your functions here
 
-// This function will recursively build the executable files based on the initial target name
-void build_from_target(char * targetName, target_t targets[], int nTargetCount) {
+// This function uses execvp to execute a shell commmand 
+void execute_command(char * targetCommand)
+{
+  // Create array of strings for command arguments
+  char *commandArgs[10];
+  // Parse command into tokens
+  int numberTokens = parse_into_tokens(targetCommand, commandArgs, " ");
+  // Execute command
+  execvp(commandArgs[0], commandArgs);
+}
 
+// This function returns 1 if the dependencies are newer than the target
+// If 1, the target command needs to be executed
+int is_target_outdated(target_t target)
+{
+  char *targetName = target.TargetName;
+  int dependencyCount = target.DependencyCount;
+
+  // Check all dependencies
+  for (int i=0; i<dependencyCount; i++) {
+    char *dependencyName = target.DependencyNames[i];
+    printf("%s older than %s? %d (update if 0)\n", targetName, dependencyName,(get_file_modification_time(targetName)>get_file_modification_time(dependencyName)));
+    if (compare_modification_time(targetName, dependencyName) == 2 ||
+        compare_modification_time(targetName, dependencyName) == -1)
+    {
+      printf("%s needs to be updated.\n\n", targetName);
+      // Return true is target is older than a dependency
+      return 1;
+    }
+  }
+  // Return false if target is up to date
+  return 0;
+}
+
+
+// This function will recursively build the executable files based on the initial target name
+void build_from_target(char * targetName, target_t targets[], int nTargetCount)
+{
   printf("+++ %s IS STARTING. +++\n\n", targetName);
 
   // Get target node number using target name
@@ -52,7 +87,6 @@ void build_from_target(char * targetName, target_t targets[], int nTargetCount) 
 
     // Initialize variables for target fields
     int targetDepCount = currentTarget.DependencyCount;
-    // strcpy???
     //char **targetDepNames = currentTarget.DependencyNames;
     char *targetCommand = currentTarget.Command;
     int targetStatus = currentTarget.Status;
@@ -64,76 +98,68 @@ void build_from_target(char * targetName, target_t targets[], int nTargetCount) 
         // Get dependency name from target dependencies array
         char *childTargetName = currentTarget.DependencyNames[i];
 
-        // Check if dependency is newer/older than target file
-        // If target file is older than dependency file -> build
-        // Else, skip build
-        // How to get file pointer?
+        int pid;
+        pid = fork();
+        // Child
+        if (pid == 0) {
+          // Recursively take care of child
+          printf("Here's the child for %s\n\n", childTargetName);
+          build_from_target(childTargetName, targets, nTargetCount);
+          printf("I (%s) tried to build_from_target but now need to exit.\n\n",childTargetName);
+        }
 
-        // compare_modification_time returns 1 if targetFile is newer than depFile
-        //if (compare_modification_time(targetFile, depFile) == 1) {
-          // Fork: Parent = Target, Child = Dependency
-          int pid;
-          pid = fork();
-          // Child
-          if (pid == 0) {
-            // Recursively take care of child
-            printf("Here's the child for %s\n\n", childTargetName);
-            build_from_target(childTargetName, targets, nTargetCount);
-            exit(0);
-          }
-          // Parent
-          else if (pid > 0) {
-            wait(NULL);
-            printf("%s is finished with %s.\n\n", targetName, childTargetName);
-          }
-          // Error
-          else {
-            // pid < 0 -> error
-          }
-        //}
+        // Parent
+        else if (pid > 0) {
+          wait(NULL);
+          printf("%s is finished with %s.\n\n", targetName, childTargetName);
+        }
+        // Error
+        else {
+          // pid < 0 -> error
+        }
       }
     }
     else {
       printf("%s doesn't have dependencies.\n\n", targetName);
     }
-    // Dependencies are resolved, execute command
-    printf("Execute:\n%s\n\n", targetCommand);
+
+    // Dependencies are resolved, move to command execution
+    // Check if target is outdated or doesn't have dependencies
+    // If so, execute command
+    if (is_target_outdated(currentTarget) || currentTarget.DependencyCount == 0) {
+      printf("Execute:\n%s\n\n", targetCommand);
+      execute_command(targetCommand);
+    }
+    // Else, exit process
+    else {
+      printf("I'm not executing.\n\n");
+      exit(0);
+    }
   }
+  // Exit process for non-target dependency
   else {
     printf("%s is not a target - nothing to do.\n\n", targetName);
+    exit(0);
   }
 
-  printf("--- %s IS FINISHED. ---\n\n", targetName);
+  printf("--- I'm %s. I shouldn't get here. ---\n\n", targetName);
 }
 
 //Phase1: Warmup phase for parsing the structure here. Do it as per the PDF (Writeup)
 void show_targets(target_t targets[], int nTargetCount)
 {
 	//Write your warmup code here
-  for(int i = 0; i < MAX_NODES; i++) {
-    printf("Target Name: %s\n",targets[i].TargetName);
-    printf("DependencyCount: %d\n",targets[i].DependencyCount);
-    if (targets[i].DependencyCount != 0) {
-      printf("DependencyNames: ");
-    
-      for(int j = 0; j < targets[i].DependencyCount;j++) {
-        if( j != 0) {
-          printf(", ");
-        }
-        printf("%s",targets[i].DependencyNames[j]);
-      }
-    
-      printf("\n");
+  printf("Printing target info:\n\n");
+  for (int i=0; i < nTargetCount; i++) {
+    printf("Target Name = %s\n", targets[i].TargetName);
+    printf("Number of Dependencies = %d\n", targets[i].DependencyCount);
+    printf("Dependency Names =");
+    for (int j=0; j < targets[i].DependencyCount; j++) {
+      printf(" %s", targets[i].DependencyNames[j]);
     }
-    printf("Command: %s\n",targets[i].Command);
-
     printf("\n");
-
-    if (targets[i].DependencyCount == 0) {
-      i = MAX_NODES;
-    }
+    printf("Target Command = %s\n\n", targets[i].Command);
   }
-	
 }
 
 /*-------------------------------------------------------END OF HELPER FUNCTIONS-------------------------------------*/
@@ -196,7 +222,6 @@ int main(int argc, char *argv[])
   //Phase1: Warmup-----------------------------------------------------------------------------------------------------
   //Parse the structure elements and print them as mentioned in the Project Writeup
   /* Comment out the following line before Phase2 */
-  printf("%d\n",nTargetCount);
   //show_targets(targets, nTargetCount);  
   //End of Warmup------------------------------------------------------------------------------------------------------
    
@@ -205,9 +230,9 @@ int main(int argc, char *argv[])
    * If target is not set, set it to default (first target from makefile)
    */
   if(argc == 1)
-	strcpy(TargetName, argv[optind]);    // here we have the given target, this acts as a method to begin the building
+    strcpy(TargetName, argv[optind]);    // here we have the given target, this acts as a method to begin the building
   else
-  	strcpy(TargetName, targets[0].TargetName);  // default part is the first target
+    strcpy(TargetName, targets[0].TargetName);  // default part is the first target
 
   /*
    * Now, the file has been parsed and the targets have been named.
@@ -221,12 +246,10 @@ int main(int argc, char *argv[])
   //Phase2: Begins ----------------------------------------------------------------------------------------------------
   /*Your code begins here*/
 
-  // Build executables from TargetName
+
   printf("\nBeginning.\n\n");
   build_from_target(TargetName, targets, nTargetCount);
   printf("End.\n");
-  
-  
   
   
   /*End of your code*/
