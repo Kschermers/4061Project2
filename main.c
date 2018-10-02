@@ -37,6 +37,17 @@ void show_error_message(char * ExecName)
 
 //Write your functions here
 
+// This function sets all target Status fields to 0.
+// Based on our implementation Status is set to 0 or 1.
+// 0 indicates that the target has not been built.
+// 1 indicates that the target has been built already.
+void set_status_to_zero(target_t targets[], int nTargetCount)
+{
+  for (int i=0; i < nTargetCount; i++) {
+    targets[i].Status = 0;
+  }
+}
+
 // This function uses execvp to execute a shell commmand.
 void execute_command(char * targetCommand)
 {
@@ -81,52 +92,61 @@ void build_from_target(char * targetName, target_t targets[], int nTargetCount)
   if (targetNodeNum >= 0) {
     // Get target structure from target name.
     target_t currentTarget = targets[targetNodeNum];
+    printf("target name %s status %d\n", currentTarget.TargetName, currentTarget.Status);
 
-    // Take care of dependencies first
-    if (currentTarget.DependencyCount > 0) {
-      for (int i=0; i<currentTarget.DependencyCount; i++) {
-        // Get dependency name from target dependencies array
-        char *childTargetName = currentTarget.DependencyNames[i];
+    // Check if target has been built.
+    if (currentTarget.Status == 0)
+    {
+      // Set Status to 1 so the target will not be built again.
+      currentTarget.Status = 1;
+      printf("target name %s status %d\n", currentTarget.TargetName, currentTarget.Status);
 
-        // Fork
-        // Parent executes current target.
-        // Child executes dependencies.
-        int pid;
-        pid = fork();
-        // Child
-        if (pid == 0) {
-          // Recursively take care of child.
-          build_from_target(childTargetName, targets, nTargetCount);
+      // Take care of dependencies first
+      if (currentTarget.DependencyCount > 0) {
+        for (int i=0; i<currentTarget.DependencyCount; i++) {
+          // Get dependency name from target dependencies array
+          char *childTargetName = currentTarget.DependencyNames[i];
+
+          // Fork
+          // Parent executes current target.
+          // Child executes dependencies.
+          int pid;
+          pid = fork();
+          // Child
+          if (pid == 0) {
+            // Recursively take care of child.
+            build_from_target(childTargetName, targets, nTargetCount);
+          }
+          // Parent
+          else if (pid > 0) {
+            int wstatus;
+            wait(&wstatus);
+            if (WEXITSTATUS(wstatus) != 0) {
+              printf("Child %s exited from parent %s with error code=%d\n%s\n", currentTarget.TargetName, childTargetName, WEXITSTATUS(wstatus),strerror(errno));
+              exit(-1);
+            }
+          }
+          // Error
+          else {
+            // If pid < 0, fork failed.
+            exit(-1);
+          }
         }
-        // Parent
-        else if (pid > 0) {
-          wait(NULL);
-          /*wait(&wstatus);
-          if (WEXITSTATUS(wstatus) != 0) {
-            printf("child exited with error code=%d\n", WEXITSTATUS(wstatus));
-          }*/
-        }
-        // Error
-        else {
-          // If pid < 0, fork failed.
-          printf("Fork in %s failed.\n", currentTarget.TargetName);
-          exit(-1);
-        }
+      } // Dependencies are now taken care of. Target can execute command if needed.
+
+      // Dependencies are resolved, move to command execution.
+      // Check if target is outdated or doesn't have dependencies.
+      // If so, execute command.
+      if (is_target_outdated(currentTarget) || currentTarget.DependencyCount == 0) {
+        printf("%s\n", currentTarget.Command);
+        execute_command(currentTarget.Command);
+        // If exec doesn't work, print error message and exit.
+        exit(-1);
       }
-    } // Dependencies are now taken care of. Target can execute command if needed.
-
-    // Dependencies are resolved, move to command execution.
-    // Check if target is outdated or doesn't have dependencies.
-    // If so, execute command.
-    if (is_target_outdated(currentTarget) || currentTarget.DependencyCount == 0) {
-      printf("%s\n", currentTarget.Command);
-      execute_command(currentTarget.Command);
-      printf("Exec in %s failed.\n", currentTarget.TargetName);
-      exit(-1);
-    }
-    // Else, exit process.
-    else {
-      exit(0);
+      // Else, exit process.
+      else {
+        exit(0);
+      }
     }
   }
   // Exit process for non-target dependency.
@@ -235,6 +255,12 @@ int main(int argc, char *argv[])
 
   //Phase2: Begins ----------------------------------------------------------------------------------------------------
   /*Your code begins here*/
+
+  // Set all target Status fields to 0.
+  // Based on our implementation Status is set to 0 or 1.
+  // 0 indicates that the target has not been built.
+  // 1 indicates that the target has been built already.
+  set_status_to_zero(targets, nTargetCount);
 
   // This function will work its way through the tree from the TargetName and execute all commands as appropriate.
   build_from_target(TargetName, targets, nTargetCount);
