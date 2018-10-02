@@ -29,126 +29,116 @@ void show_targets(target_t targets[], int nTargetCount);
 //It prints the same message in all the cases
 void show_error_message(char * ExecName)
 {
-	fprintf(stderr, "Usage: %s [options] [target] : only single target is allowed.\n", ExecName);
-	fprintf(stderr, "-f FILE\t\tRead FILE as a makefile.\n");
-	fprintf(stderr, "-h\t\tPrint this message and exit.\n");
-	exit(0);
+  fprintf(stderr, "Usage: %s [options] [target] : only single target is allowed.\n", ExecName);
+  fprintf(stderr, "-f FILE\t\tRead FILE as a makefile.\n");
+  fprintf(stderr, "-h\t\tPrint this message and exit.\n");
+  exit(0);
 }
 
 //Write your functions here
 
-// This function uses execvp to execute a shell commmand 
+// This function uses execvp to execute a shell commmand.
 void execute_command(char * targetCommand)
 {
-  // Create array of strings for command arguments
+  // Create array of strings for command arguments.
   char *commandArgs[10];
-  // Parse command into tokens
+  // Parse command into tokens.
   int numberTokens = parse_into_tokens(targetCommand, commandArgs, " ");
-  // Execute command
+  // Execute command.
   execvp(commandArgs[0], commandArgs);
+  // Return if exec doesn't work. build_from_target will handle the error.
 }
 
-// This function returns 1 if the dependencies are newer than the target
-// If 1, the target command needs to be executed
+// This function returns 1 if the dependencies are newer than the target.
+// If 1, the target command needs to be executed.
 int is_target_outdated(target_t target)
 {
   char *targetName = target.TargetName;
   int dependencyCount = target.DependencyCount;
 
-  // Check all dependencies
+  // Check all dependencies.
   for (int i=0; i<dependencyCount; i++) {
     char *dependencyName = target.DependencyNames[i];
-    printf("%s older than %s? %d (update if 0)\n", targetName, dependencyName,(get_file_modification_time(targetName)>get_file_modification_time(dependencyName)));
     if (compare_modification_time(targetName, dependencyName) == 2 ||
         compare_modification_time(targetName, dependencyName) == -1)
     {
-      printf("%s needs to be updated.\n\n", targetName);
-      // Return true is target is older than a dependency
+      // Return true is target is older than a dependency.
       return 1;
     }
   }
-  // Return false if target is up to date
+  // Return false if target is up to date.
   return 0;
 }
 
 
-// This function will recursively build the executable files based on the initial target name
+// This function will recursively build the executable files based on the initial target name.
 void build_from_target(char * targetName, target_t targets[], int nTargetCount)
 {
-  printf("+++ %s IS STARTING. +++\n\n", targetName);
-
-  // Get target node number using target name
+  // Get target node number using target name.
   int targetNodeNum = find_target(targetName, targets, nTargetCount);
 
-  // Check if targetNodeNum is postive, else target doesn't exist
+  // Check if targetNodeNum is postive, else target doesn't exist.
   if (targetNodeNum >= 0) {
-    // Get target structure from target name
+    // Get target structure from target name.
     target_t currentTarget = targets[targetNodeNum];
 
-    // Initialize variables for target fields
-    int targetDepCount = currentTarget.DependencyCount;
-    //char **targetDepNames = currentTarget.DependencyNames;
-    char *targetCommand = currentTarget.Command;
-    int targetStatus = currentTarget.Status;
-
     // Take care of dependencies first
-    if (targetDepCount > 0) {
-      printf("%s has dependencies.\n\n", targetName);
-      for (int i=0; i<targetDepCount; i++) {
+    if (currentTarget.DependencyCount > 0) {
+      for (int i=0; i<currentTarget.DependencyCount; i++) {
         // Get dependency name from target dependencies array
         char *childTargetName = currentTarget.DependencyNames[i];
 
+        // Fork
+        // Parent executes current target.
+        // Child executes dependencies.
         int pid;
         pid = fork();
         // Child
         if (pid == 0) {
-          // Recursively take care of child
-          printf("Here's the child for %s\n\n", childTargetName);
+          // Recursively take care of child.
           build_from_target(childTargetName, targets, nTargetCount);
-          printf("I (%s) tried to build_from_target but now need to exit.\n\n",childTargetName);
         }
-
         // Parent
         else if (pid > 0) {
           wait(NULL);
-          printf("%s is finished with %s.\n\n", targetName, childTargetName);
+          /*wait(&wstatus);
+          if (WEXITSTATUS(wstatus) != 0) {
+            printf("child exited with error code=%d\n", WEXITSTATUS(wstatus));
+          }*/
         }
         // Error
         else {
-          // pid < 0 -> error
+          // If pid < 0, fork failed.
+          printf("Fork in %s failed.\n", currentTarget.TargetName);
+          exit(-1);
         }
       }
-    }
-    else {
-      printf("%s doesn't have dependencies.\n\n", targetName);
-    }
+    } // Dependencies are now taken care of. Target can execute command if needed.
 
-    // Dependencies are resolved, move to command execution
-    // Check if target is outdated or doesn't have dependencies
-    // If so, execute command
+    // Dependencies are resolved, move to command execution.
+    // Check if target is outdated or doesn't have dependencies.
+    // If so, execute command.
     if (is_target_outdated(currentTarget) || currentTarget.DependencyCount == 0) {
-      printf("Execute:\n%s\n\n", targetCommand);
-      execute_command(targetCommand);
+      printf("%s\n", currentTarget.Command);
+      execute_command(currentTarget.Command);
+      printf("Exec in %s failed.\n", currentTarget.TargetName);
+      exit(-1);
     }
-    // Else, exit process
+    // Else, exit process.
     else {
-      printf("I'm not executing.\n\n");
       exit(0);
     }
   }
-  // Exit process for non-target dependency
+  // Exit process for non-target dependency.
   else {
-    printf("%s is not a target - nothing to do.\n\n", targetName);
     exit(0);
   }
-
-  printf("--- I'm %s. I shouldn't get here. ---\n\n", targetName);
 }
 
 //Phase1: Warmup phase for parsing the structure here. Do it as per the PDF (Writeup)
 void show_targets(target_t targets[], int nTargetCount)
 {
-	//Write your warmup code here
+  //Write your warmup code here
   printf("Printing target info:\n\n");
   for (int i=0; i < nTargetCount; i++) {
     printf("Target Name = %s\n", targets[i].TargetName);
@@ -177,8 +167,8 @@ int main(int argc, char *argv[])
   char TargetName[64];
 
   /* Declarations for getopt. For better understanding of the function use the man command i.e. "man getopt" */
-  extern int optind;   		// It is the index of the next element of the argv[] that is going to be processed
-  extern char * optarg;		// It points to the option argument
+  extern int optind;      // It is the index of the next element of the argv[] that is going to be processed
+  extern char * optarg;   // It points to the option argument
   int ch;
   char *format = "f:h";
   char *temp;
@@ -188,27 +178,27 @@ int main(int argc, char *argv[])
   //Ex. f: for h there won't be any argument hence we are not going to do the same for h, hence "f:h"
   while((ch = getopt(argc, argv, format)) != -1)
   {
-	  switch(ch)
-	  {
-	  	  case 'f':
-	  		  temp = strdup(optarg);
-	  		  strcpy(Makefile, temp);  // here the strdup returns a string and that is later copied using the strcpy
-	  		  free(temp);	//need to manually free the pointer
-	  		  break;
+    switch(ch)
+    {
+        case 'f':
+          temp = strdup(optarg);
+          strcpy(Makefile, temp);  // here the strdup returns a string and that is later copied using the strcpy
+          free(temp); //need to manually free the pointer
+          break;
 
-	  	  case 'h':
-	  	  default:
-	  		  show_error_message(argv[0]);
-	  		  exit(1);
-	  }
+        case 'h':
+        default:
+          show_error_message(argv[0]);
+          exit(1);
+    }
 
   }
 
   argc -= optind;
   if(argc > 1)   //Means that we are giving more than 1 target which is not accepted
   {
-	  show_error_message(argv[0]);
-	  return -1;   //This line is not needed
+    show_error_message(argv[0]);
+    return -1;   //This line is not needed
   }
 
   /* Init Targets */
@@ -216,7 +206,7 @@ int main(int argc, char *argv[])
 
   /* Parse graph file or die, This is the main function to perform the toplogical sort and hence populate the structure */
   if((nTargetCount = parse(Makefile, targets)) == -1)  //here the parser returns the starting address of the array of the structure. Here we gave the makefile and then it just does the parsing of the makefile and then it has created array of the nodes
-	  return -1;
+    return -1;
 
 
   //Phase1: Warmup-----------------------------------------------------------------------------------------------------
@@ -242,15 +232,12 @@ int main(int argc, char *argv[])
    * etc. Else if no target is mentioned then build the first target
    * found in Makefile.
    */
-	
+
   //Phase2: Begins ----------------------------------------------------------------------------------------------------
   /*Your code begins here*/
 
-
-  printf("\nBeginning.\n\n");
+  // This function will work its way through the tree from the TargetName and execute all commands as appropriate.
   build_from_target(TargetName, targets, nTargetCount);
-  printf("End.\n");
-  
   
   /*End of your code*/
   //End of Phase2------------------------------------------------------------------------------------------------------
