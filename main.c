@@ -40,7 +40,8 @@ void show_error_message(char * ExecName)
 // This function sets all target Status fields to READY.
 // For our implementation:
 // READY indicates that the target has not been built.
-// FINISHED indicates that the target has been built already.
+// FINISHED indicates that the target does not need to be built.
+// EXECUTED indicates that the target command has been executed.
 void set_status_to_ready(target_t targets[], int nTargetCount)
 {
   for (int i=0; i < nTargetCount; i++) {
@@ -129,7 +130,7 @@ void build_from_target(char * targetName, target_t targets[], int nTargetCount)
         exit(-1);
       }
       // Set status to finished so it won't be executed agian.
-      targets[targetNodeNum].Status = FINISHED;
+      targets[targetNodeNum].Status = EXECUTED;
     }
     // Error
     else {
@@ -245,6 +246,19 @@ int main(int argc, char *argv[])
 
   // This function will work its way through the tree from the TargetName and execute all commands as appropriate.
   build_from_target(TargetName, targets, nTargetCount);
+
+  // Check if any targets were built.
+  int targetsExecuted = FALSE;
+  for (int i=0; i < nTargetCount; i++) {
+    if (targets[i].Status == EXECUTED) {
+      targetsExecuted = TRUE;
+    }
+  }
+
+  // Print message if no commands were executed and target is up to date.
+  if (!targetsExecuted) {
+    printf("make4061: %s is up to date.\n", TargetName);
+  }
   
   /*End of your code*/
   //End of Phase2------------------------------------------------------------------------------------------------------
