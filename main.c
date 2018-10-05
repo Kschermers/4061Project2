@@ -1,8 +1,8 @@
 /* CSci4061 F2018 Assignment 1
-* login: cselabs login name (login used to submit)
-* date: mm/dd/yy
-* name: full name1, full name2, full name3 (for partner(s))
-* id: id for first name, id for second name, id for third name */
+* login: thom4845
+* date: 10/05/18
+* name: Andrew Thomas, Kadin Schermers, Michael Greene
+* id: 4531503, 5204168, 4766783 */
 
 // This is the main file for the code
 #include <errno.h>
