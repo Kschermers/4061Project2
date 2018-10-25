@@ -75,9 +75,23 @@ int list_users(int idx, USER * user_list)
  */
 int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_child, int pipe_to_parent)
 {
-	// populate the user_list structure with the arguments passed to this function
-	// return the index of user added
-	return 0;
+    // populate the user_list structure with the arguments passed to this function
+    // return the index of user added
+    int slot = find_empty_slot(user_list);
+    if(slot >= 0){
+        USER newUser;
+        newUser.m_pid = pid;
+        newUser.m_user_id = user_id;
+        newUser.m_fd_to_user = pipe_to_child;
+        newUser.m_fd_to_server = pipe_to_parent;
+        newUser.m_status = SLOT_FULL;
+        return slot;
+    }
+    else{
+        return -1;
+    }
+	
+
 }
 
 /*
@@ -86,6 +100,9 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
 void kill_user(int idx, USER * user_list) {
 	// kill a user (specified by idx) by using the systemcall kill()
 	// then call waitpid on the user
+    kill(user_list[idx].m_pid, SIGKILL);
+    int status;
+    waitpid(user_list[idx].m_pid, &status);
 }
 
 /*
@@ -98,14 +115,23 @@ void cleanup_user(int idx, USER * user_list)
 	// close all the fd
 	// set the value of all fd back to -1
 	// set the status back to empty
+    user_list[idx].m_pid = -1;
+    memset(user_list[idx].m_user_id, '\0', MAX_USER_ID);
+    close(user_list[idx].m_fd_to_user);
+    close(user_list[idx].m_fd_to_server);
+    user_list[idx].m_fd_to_server =  -1;
+    user_list[idx].m_fd_to_user = -1;
+    user_list[idx].m_status = SLOT_EMPTY;
 }
 
 /*
  * Kills the user and performs cleanup
  */
 void kick_user(int idx, USER * user_list) {
-	// should kill_user()
-	// then perform cleanup_user()
+    // should kill_user()
+    // then perform cleanup_user()
+    kill_user(idx, user_list);
+    cleanup_user(idx, user_list);
 }
 
 /*
@@ -126,6 +152,11 @@ void cleanup_users(USER * user_list)
 {
 	// go over the user list and check for any empty slots
 	// call cleanup user for each of those users.
+    for(int i = 0; i < MAX_USER; i++){
+        if(user_list[i].m_status==SLOT_EMPTY){
+            cleanup_user(i, user_list);
+        }
+    }
 }
 
 /*
@@ -192,7 +223,6 @@ int extract_text(char *buf, char * text)
  */
 void send_p2p_msg(int idx, USER * user_list, char *buf)
 {
-
 	// get the target user by name using extract_name() function
 	// find the user id using find_user_index()
 	// if user not found, write back to the original user "User not found", using the write()function on pipes. 
