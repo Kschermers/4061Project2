@@ -3,7 +3,6 @@
  *  Written by:
  *      Nikki Walker: walk0760@umn.edu
  *      Kadin Schermers: scher528@umn.edu
- *      Naman Sogani: sogan001@umn.edu
  *      Samuel Ball: ballx188@umn.edu
  *
  *  Members of Project 2 Group 17 on Canvas
