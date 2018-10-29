@@ -1,4 +1,16 @@
-#include <stdio.h> 
+/*  CSCI 4061 F18 Project 2
+ *
+ *  Written by:
+ *      Nikki Walker: walk0760@umn.edu
+ *      Kadin Schermers: scher528@umn.edu
+ *      Naman Sogani: sogan001@umn.edu
+ *      Samuel Ball: ballx188@umn.edu
+ *
+ *  Members of Project 2 Group 17 on Canvas
+ *  University of Minnesota Fall 2018
+ */
+
+#include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <stdlib.h>
