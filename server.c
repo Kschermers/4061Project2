@@ -295,7 +295,7 @@ int main(int argc, char * argv[])
 		pid = fork();
 
 		// Child process: poll users and SERVER
-		if(pid != 0){
+		if(pid == 0){
 		
 
 
