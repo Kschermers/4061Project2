@@ -291,13 +291,24 @@ int main(int argc, char * argv[])
 		char user_id[MAX_USER_ID];
 
 		// Check max user and same user id
+		int pid;
+		pid = fork();
 
-		// Child process: poli users and SERVER
+		// Child process: poll users and SERVER
+		if(pid != 0){
+		
 
-		// Server process: Add a new user information into an empty slot   
+
+			
+		// Server process: Add a new user information into an empty slot 
+		}else{
+  
+
+
+
 		// poll child processes and handle user commands
 		// Poll stdin (input from the terminal) and handle admnistrative command
-	
+		}
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 	}
 }
