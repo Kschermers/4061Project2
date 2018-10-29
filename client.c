@@ -18,13 +18,15 @@ void main(int argc, char * argv[]) {
 
 	// You will need to get user name as a parameter, argv[1].
 
-	if(connect_to_server("YOUR_UNIQUE_ID", argv[1], pipe_to_user, pipe_to_server) == -1) {
+	if(connect_to_server("ok", argv[1], pipe_to_user, pipe_to_server) == -1) {
 		exit(-1);
 	}
 
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
 	char buffer[MAX_MSG];
 	
+	
+
 	close(pipe_to_user[1]);
 	close(pipe_to_server[0]);
     int flags = fcntl(0, F_GETFL, 0); /* get current file status flags */
@@ -32,7 +34,7 @@ void main(int argc, char * argv[]) {
     fcntl(0, F_SETFL, val);    /* set up non-blocking read */
 	while(){
 		// poll pipe retrieved and print it to sdiout
-		//read(pipe_to_user, , MAX_MSG)
+		//read(pipe_to_user[0], , MAX_MSG)
 
 
 
