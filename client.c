@@ -10,7 +10,8 @@
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include "comm.h"
-
+int signalled = 0;
+void handle_signals(int sig_num){signalled = 1;}
 /* -------------------------Main function for the client ----------------------*/
 void main(int argc, char * argv[]) {
 
@@ -25,6 +26,12 @@ void main(int argc, char * argv[]) {
 	}
 
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
+   
+    struct sigaction my_sa = {};
+    my_sa.sa_handler = handle_signals;
+    sigaction(SIGTERM, &my_sa, NULL);
+    sigaction(SIGINT,  &my_sa, NULL);
+    
 	char buffer[MAX_MSG];
 	
 	close(pipe_to_user[1]);
@@ -32,7 +39,7 @@ void main(int argc, char * argv[]) {
     int flags = fcntl(0, F_GETFL, 0); /* get current file status flags */
     flags |= O_NONBLOCK;    /* turn off blocking flag */
     fcntl(0, F_SETFL, val);    /* set up non-blocking read */
-	while(){
+	while(!signalled){
 		// poll pipe retrieved and print it to sdiout
 		//read(pipe_to_user[0], , MAX_MSG)
 
