@@ -23,13 +23,22 @@ void main(int argc, char * argv[]) {
 	}
 
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
-
+	char buffer[MAX_MSG];
 	
-	// poll pipe retrieved and print it to sdiout
+	close(pipe_to_user[1]);
+	close(pipe_to_server[0]);
 
-	// Poll stdin (input from the terminal) and send it to server (child process) via pipe
+	while(){
+		// poll pipe retrieved and print it to sdiout
+		//read(pipe_to_user, , MAX_MSG)
 
-		
+
+
+		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
+		read(0, buffer, MAX_MSG);
+		write(pipe_to_server[1], buffer, MAX_MSG);	
+
+	}	
 	/* -------------- YOUR CODE ENDS HERE -----------------------------------*/
 }
 
