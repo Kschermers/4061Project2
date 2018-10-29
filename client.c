@@ -15,6 +15,8 @@
 void main(int argc, char * argv[]) {
 
 	int pipe_to_user[2], pipe_to_server[2];
+	pipe(pipe_to_user);
+	pipe(pipe_to_server);
 
 	// You will need to get user name as a parameter, argv[1].
 
@@ -25,8 +27,6 @@ void main(int argc, char * argv[]) {
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
 	char buffer[MAX_MSG];
 	
-	
-
 	close(pipe_to_user[1]);
 	close(pipe_to_server[0]);
     int flags = fcntl(0, F_GETFL, 0); /* get current file status flags */
