@@ -27,29 +27,42 @@ void main(int argc, char * argv[]) {
 
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
    
+	// signal handling
     struct sigaction my_sa = {};
     my_sa.sa_handler = handle_signals;
     sigaction(SIGTERM, &my_sa, NULL);
     sigaction(SIGINT,  &my_sa, NULL);
     
-	char buffer[MAX_MSG];
-	
+	// set up buffers
+	char buf_send[MAX_MSG];
+	char buf_recieve[MAX_MSG];	
+
+	// close unused pipe ends
 	close(pipe_to_user[1]);
 	close(pipe_to_server[0]);
+
+	// make reading from server nonblocking
+	fcntl(pipe_to_user[0], F_SETFL, O_NONBLOCK);
+
+	// make stdin nonblocking
     int flags = fcntl(0, F_GETFL, 0); /* get current file status flags */
     flags |= O_NONBLOCK;    /* turn off blocking flag */
     fcntl(0, F_SETFL, val);    /* set up non-blocking read */
+
+
 	while(!signalled){
 		// poll pipe retrieved and print it to sdiout
-		//read(pipe_to_user[0], , MAX_MSG)
+		read(pipe_to_user[0], buf_recieve, MAX_MSG);
+		write(1, buf_recieve, MAX_MSG);
+		memset(buf_recieve, '\0', MAX_MSG);
 
 
 
 		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
       
-		read(0, buffer, MAX_MSG);
-		write(pipe_to_server[1], buffer, MAX_MSG);
-		memset(buffer, '\0', MAX_MSG);
+		read(0, buf_send, MAX_MSG);
+		write(pipe_to_server[1], buf_send, MAX_MSG);
+		memset(buf_send, '\0', MAX_MSG);
 
 	}	
 	/* -------------- YOUR CODE ENDS HERE -----------------------------------*/
