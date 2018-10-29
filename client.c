@@ -27,7 +27,9 @@ void main(int argc, char * argv[]) {
 	
 	close(pipe_to_user[1]);
 	close(pipe_to_server[0]);
-
+    int flags = fcntl(0, F_GETFL, 0); /* get current file status flags */
+    flags |= O_NONBLOCK;    /* turn off blocking flag */
+    fcntl(0, F_SETFL, val);    /* set up non-blocking read */
 	while(){
 		// poll pipe retrieved and print it to sdiout
 		//read(pipe_to_user, , MAX_MSG)
@@ -35,6 +37,7 @@ void main(int argc, char * argv[]) {
 
 
 		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
+      
 		read(0, buffer, MAX_MSG);
 		write(pipe_to_server[1], buffer, MAX_MSG);
 		memset(buffer, '\0', MAX_MSG);
