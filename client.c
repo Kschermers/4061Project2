@@ -36,7 +36,8 @@ void main(int argc, char * argv[]) {
 
 		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
 		read(0, buffer, MAX_MSG);
-		write(pipe_to_server[1], buffer, MAX_MSG);	
+		write(pipe_to_server[1], buffer, MAX_MSG);
+		memset(buffer, '\0', MAX_MSG);
 
 	}	
 	/* -------------- YOUR CODE ENDS HERE -----------------------------------*/
