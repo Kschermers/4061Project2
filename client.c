@@ -16,8 +16,6 @@ void handle_signals(int sig_num){signalled = 1;}
 void main(int argc, char * argv[]) {
 
 	int pipe_to_user[2], pipe_to_server[2];
-	pipe(pipe_to_user);
-	pipe(pipe_to_server);
 
 	// You will need to get user name as a parameter, argv[1].
 

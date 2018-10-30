@@ -88,15 +88,15 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
 {
     // populate the user_list structure with the arguments passed to this function
     // return the index of user added
-    int slot = find_empty_slot(user_list);
-    if(slot >= 0){
-        USER newUser;
+    if(idx >= 0){
+        struct USER newUser = {};
         newUser.m_pid = pid;
         newUser.m_user_id = user_id;
         newUser.m_fd_to_user = pipe_to_child;
         newUser.m_fd_to_server = pipe_to_parent;
         newUser.m_status = SLOT_FULL;
-        return slot;
+        user_list[idx] = newUser;
+        return idx;
     }
     else{
         return -1;
@@ -286,29 +286,33 @@ int main(int argc, char * argv[])
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 
 		// Handling a new connection using get_connection
+        
 		int pipe_SERVER_reading_from_child[2];
 		int pipe_SERVER_writing_to_child[2];
 		char user_id[MAX_USER_ID];
 
 		// Check max user and same user id
-		int pid;
-		pid = fork();
-
-		// Child process: poll users and SERVER
-		if(pid == 0){
-		
-
-
-			
-		// Server process: Add a new user information into an empty slot 
-		}else{
-  
-
-
-
-		// poll child processes and handle user commands
-		// Poll stdin (input from the terminal) and handle admnistrative command
-		}
+        int slot =find_empty_slot(user_list);
+        if(slot>0){
+            int pid;
+            pid = fork();
+            
+            // Child process: poll users and SERVER
+            if(pid == 0){
+                int pipe_child_reading_from_client[2];
+                int pipe_child_writing_to_client[2];
+                get_connection(user_id, pipe_child_reading_from_client[2], pipe_child_writing_to_client[2]);
+            }else{
+                
+            
+                
+                // Server process: Add a new user information into an empty slot
+                
+                // poll child processes and handle user commands
+                // Poll stdin (input from the terminal) and handle admnistrative command
+            }
+        }
+	
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 	}
 }

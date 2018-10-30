@@ -142,7 +142,7 @@ int get_connection(char * user_id, int pipe_child_writing_to_user[2], int pipe_c
 	int cfd = accept(g_sfd, NULL, NULL);
 
 	if (cfd != -1) {
-		//fork and sotre client info
+		//fork and store client info
 		//int ret = fork();
 
 		if (pipe(pipe_child_writing_to_user) < 0 || pipe(pipe_child_reading_from_user) < 0) {
