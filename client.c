@@ -1,3 +1,20 @@
+/*  Class:  CSCI 4061
+ *  Term:   Fall 2018
+ *  Project: Project 2
+ *  File: client.c
+ *
+ *  Written by:
+ *      Nikki Walker: walk0760@umn.edu
+ *      Kadin Schermers: scher528@umn.edu
+ *      Samuel Ball: ballx188@umn.edu
+ *
+ *  This file contains code solely supplied by our superiors for our use
+ *  or code that has been written by us.
+ *
+ *  Members of Project 2 Group 17 on Canvas
+ *  University of Minnesota Fall 2018
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
