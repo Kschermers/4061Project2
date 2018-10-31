@@ -36,6 +36,7 @@ void main(int argc, char * argv[]) {
 	char buf_recieve[MAX_MSG];	
 
 	// close unused pipe ends
+    //Should we close these here?? Cause of the comm methods creating the pipe thing..
 	close(pipe_to_user[1]);
 	close(pipe_to_server[0]);
 

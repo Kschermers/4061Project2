@@ -101,8 +101,6 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
     else{
         return -1;
     }
-	
-
 }
 
 /*
