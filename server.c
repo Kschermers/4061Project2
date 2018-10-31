@@ -24,7 +24,7 @@
 #include "util.h"
 
 /* -----------Functions that implement server functionality -------------------------*/
-
+//im just trying to figure terminal shit out
 /*
  * Returns the empty slot on success, or -1 on failure
  */
