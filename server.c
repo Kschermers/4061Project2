@@ -285,33 +285,60 @@ int main(int argc, char * argv[])
 	while(1) {
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 
-		// Handling a new connection using get_connection
         
 		int pipe_SERVER_reading_from_child[2];
 		int pipe_SERVER_writing_to_child[2];
+        //where do we pipe these? child processs?
+        
 		char user_id[MAX_USER_ID];
 
 		// Check max user and same user id
-        int slot =find_empty_slot(user_list);
-        if(slot>0){
+        int slot = find_empty_slot(user_list);
+        //new user to add, create child process and establish connection
+        if(slot>0 && get_connection(user_id, pipe_child_reading_from_client[2], pipe_child_writing_to_client[2])>=0){
             int pid;
+            int pipe_child_reading_from_client[2];
+            int pipe_child_writing_to_client[2];
             pid = fork();
-            
-            // Child process: poll users and SERVER
             if(pid == 0){
-                int pipe_child_reading_from_client[2];
-                int pipe_child_writing_to_client[2];
-                get_connection(user_id, pipe_child_reading_from_client[2], pipe_child_writing_to_client[2]);
-            }else{
+                //close ends we don't need
+                close(pipe_child_reading_from_client[1]);
+                close(pipe_child_writing_to_client[0]);
+                    
+                //set up non blocking
                 
-            
+                fcntl(pipe_SERVER_reading_from_child[0], F_SETFL, O_NONBLOCK);
+                fcntl(pipe_child_reading_from_client[0], F_SETFL, O_NONBLOCK);
                 
+                // Child process: poll users and SERVER
+                //when read = 0 send message to server, pipe is broken
+                while(1){
+                    //fix syntax, handle commands of what's read eg p2p
+                    read(pipe_child_reading_from_client[0]);
+                    read(pipe_SERVER_reading_from_child[0]);
+                }
+            }
+            else{
                 // Server process: Add a new user information into an empty slot
-                
-                // poll child processes and handle user commands
-                // Poll stdin (input from the terminal) and handle admnistrative command
+                add_user(slot, user_list, getpid(), user_id, pipe_child_writing_to_client, pipe_child_reading_from_client);
             }
         }
+            
+            //happens even if there isn't a new child
+      
+            for(int i = 0; i < MAX_USER; i++){
+                if(user_list[i].m_status == SLOT_FULL){
+                    // poll child processes and handle user commands
+                    //make nonblocking, fix syntax
+                    read(user_list[i].m_fd_to_server);
+                }
+            }
+            // Poll stdin (input from the terminal) and handle admnistrative command
+            //handle commands like list, broadcast
+            //make nonblocking, fix syntax
+            read(0);
+            
+        
 	
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 	}

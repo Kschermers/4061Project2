@@ -49,12 +49,10 @@ void main(int argc, char * argv[]) {
 
 
 	while(!signalled){
-		// poll pipe retrieved and print it to sdiout
+		// poll pipe retrieved and print it to stdout
 		read(pipe_to_user[0], buf_recieve, MAX_MSG);
 		write(1, buf_recieve, MAX_MSG);
 		memset(buf_recieve, '\0', MAX_MSG);
-
-
 
 		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
       
