@@ -64,7 +64,7 @@ void main(int argc, char * argv[]) {
 	// make stdin nonblocking
     int flags = fcntl(0, F_GETFL, 0); /* get current file status flags */
     flags |= O_NONBLOCK;    /* turn off blocking flag */
-    fcntl(0, F_SETFL, val);    /* set up non-blocking read */
+    fcntl(0, F_SETFL,0);    /* set up non-blocking read */
 
 
 	while(!signalled){

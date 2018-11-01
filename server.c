@@ -96,9 +96,9 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
     // populate the user_list structure with the arguments passed to this function
     // return the index of user added
     if(idx >= 0){
-        struct USER newUser = {};
+        USER newUser = {};
         newUser.m_pid = pid;
-        newUser.m_user_id = user_id;
+        newUser.m_user_id;
         newUser.m_fd_to_user = pipe_to_child;
         newUser.m_fd_to_server = pipe_to_parent;
         newUser.m_status = SLOT_FULL;
@@ -118,7 +118,7 @@ void kill_user(int idx, USER * user_list) {
 	// then call waitpid on the user
     kill(user_list[idx].m_pid, SIGKILL);
     int status;
-    waitpid(user_list[idx].m_pid, &status);
+    waitpid(user_list[idx].m_pid, &status,0);
 }
 
 /*
@@ -295,15 +295,18 @@ int main(int argc, char * argv[])
 		int pipe_SERVER_writing_to_child[2];
         //where do we pipe these? child processs?
         
+        char reader_buf[MAX_MSG];
 		char user_id[MAX_USER_ID];
 
 		// Check max user and same user id
         int slot = find_empty_slot(user_list);
         //new user to add, create child process and establish connection
-        if(slot>0 && get_connection(user_id, pipe_child_reading_from_client[2], pipe_child_writing_to_client[2])>=0){
+        int pipe_child_reading_from_client[2];
+        int pipe_child_writing_to_client[2];
+        
+        if(slot>0 && get_connection(user_id, pipe_child_reading_from_client, pipe_child_writing_to_client)>=0){
             int pid;
-            int pipe_child_reading_from_client[2];
-            int pipe_child_writing_to_client[2];
+            
             pid = fork();
             if(pid == 0){
                 //close ends we don't need
@@ -319,8 +322,8 @@ int main(int argc, char * argv[])
                 //when read = 0 send message to server, pipe is broken
                 while(1){
                     //fix syntax, handle commands of what's read eg p2p
-                    read(pipe_child_reading_from_client[0]);
-                    read(pipe_SERVER_reading_from_child[0]);
+                    read(pipe_child_reading_from_client[0],reader_buf,MAX_MSG);
+                    read(pipe_SERVER_reading_from_child[0],reader_buf,MAX_MSG);
                 }
             }
             else{
@@ -334,13 +337,13 @@ int main(int argc, char * argv[])
             if(user_list[i].m_status == SLOT_FULL){
                 // poll child processes and handle user commands
                 //make nonblocking, fix syntax
-                read(user_list[i].m_fd_to_server);
+                read(user_list[i].m_fd_to_server,user_id,MAX_USER_ID);
             }
         }
         // Poll stdin (input from the terminal) and handle admnistrative command
         //handle commands like list, broadcast
         //make nonblocking, fix syntax
-        read(0);
+        //read(0);
             
         
 	
