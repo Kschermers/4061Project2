@@ -69,16 +69,19 @@ void main(int argc, char * argv[]) {
 
 	while(!signalled){
 		// poll pipe retrieved and print it to stdout
-		read(pipe_to_user[0], buf_recieve, MAX_MSG);
-		write(1, buf_recieve, MAX_MSG);
+		int bytesRead = read(pipe_to_user[0], buf_recieve, MAX_MSG);
+        if(bytesRead > 0){
+            write(1, buf_recieve, MAX_MSG);
+        }
 		memset(buf_recieve, '\0', MAX_MSG);
 
 		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
       
-		read(0, buf_send, MAX_MSG);
-		write(pipe_to_server[1], buf_send, MAX_MSG);
+		int bytesRead2 = read(0, buf_send, MAX_MSG);
+        if(bytesRead2 > 0){
+            write(pipe_to_server[1], buf_send, MAX_MSG);
+        }
 		memset(buf_send, '\0', MAX_MSG);
-
 	}	
 	/* -------------- YOUR CODE ENDS HERE -----------------------------------*/
 }

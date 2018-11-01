@@ -297,7 +297,8 @@ int main(int argc, char * argv[])
 		int pipe_SERVER_writing_to_child[2];
         //where do we pipe these? child processs?
         
-        char reader_buf[MAX_MSG];
+        char read_child_from_client[MAX_MSG];
+        char read_server_from_child[MAX_MSG];
 		char user_id[MAX_USER_ID];
 
 		// Check max user and same user id
@@ -307,7 +308,16 @@ int main(int argc, char * argv[])
         int pipe_child_writing_to_client[2];
         
         //Declerations in method???
-        if(slot>0 && get_connection(user_id, pipe_child_reading_from_client, pipe_child_writing_to_client)>=0){
+        if(slot>0 && get_connection(user_id, pipe_child_reading_from_client, pipe_child_writing_to_client)==0){
+            fcntl(pipe_SERVER_reading_from_child[0], F_SETFL, O_NONBLOCK);
+            fcntl(pipe_child_reading_from_client[0], F_SETFL, O_NONBLOCK);
+            
+            pipe(pipe_SERVER_reading_from_child[2]);
+            pipe(pipe_SERVER_writing_to_child[2]);
+            
+            fcntl(pipe_SERVER_reading_from_child[0], F_SETFL, O_NONBLOCK);
+            fcntl(pipe_SERVER_writing_to_child[0], F_SETFL, O_NONBLOCK);
+            
             int pid;
             
             pid = fork();
@@ -315,23 +325,27 @@ int main(int argc, char * argv[])
                 //close ends we don't need
                 close(pipe_child_reading_from_client[1]);
                 close(pipe_child_writing_to_client[0]);
-                    
-                //set up non blocking
-                
-                fcntl(pipe_SERVER_reading_from_child[0], F_SETFL, O_NONBLOCK);
-                fcntl(pipe_child_reading_from_client[0], F_SETFL, O_NONBLOCK);
-                
+                close(pipe_SERVER_writing_to_child[1]);
+                close(pipe_SERVER_reading_from_child[0]);
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
                 while(1){
-                    //fix syntax, handle commands of what's read eg p2p
-                    read(pipe_child_reading_from_client[0],reader_buf,MAX_MSG);
-                    read(pipe_SERVER_reading_from_child[0],reader_buf,MAX_MSG);
+               
+                    int bytesRead = read(pipe_child_reading_from_client[0],read_child_from_client,MAX_MSG);
+                    if(bytesRead>0){
+                        //send to write end of child writing to server
+                    }
+                    //memset buffer
+                    int bytesRead2 = read(pipe_SERVER_reading_from_child[0],read_server_from_child,MAX_MSG);
+                    if(bytesRead2 > 0){
+                        //send to write
+                    }
+                    //memset buffer
                 }
             }
             else{
                 // Server process: Add a new user information into an empty slot
-                add_user(slot, user_list, getpid(), user_id, pipe_child_writing_to_client, pipe_child_reading_from_client);
+                add_user(slot, user_list, getpid(), user_id, pipe_child_writing_to_client[1], pipe_child_reading_from_client[0]);
             }
         }
             
@@ -342,11 +356,13 @@ int main(int argc, char * argv[])
                 //make nonblocking, fix syntax
                 //Wrong buffer
                 read(user_list[i].m_fd_to_server,user_id,MAX_USER_ID);
+                //switch statement to handle commands use util function getcommandtype
             }
         }
         // Poll stdin (input from the terminal) and handle admnistrative command
         //handle commands like list, broadcast
         //make nonblocking, fix syntax
+        //stdin should already be nonblocking?
         //read(0);
             
         
