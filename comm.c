@@ -63,10 +63,10 @@ int connect_to_server(char * connect_point, char * user_id, int pipe_user_readin
 
 	server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (server_fd == -1) {
-		printf("Failed to connect server");
+		printf("Failed to connect server\n");
 		return -1;
 	}
-
+	
 	memset(&addr, 0, sizeof(struct sockaddr_un));
 	addr.sun_family = AF_UNIX;
 
@@ -83,7 +83,7 @@ int connect_to_server(char * connect_point, char * user_id, int pipe_user_readin
 		perror("Failed to write user id\n");
 		return -1;
 	}
-
+	
 	if (recv_fd(server_fd, 2, pipe_user_reading_from_server) !=0) {
 		printf("Error in recv_fd\n");
 		return -1;
