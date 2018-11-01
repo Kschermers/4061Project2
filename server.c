@@ -329,19 +329,18 @@ int main(int argc, char * argv[])
             }
         }
             
-            //happens even if there isn't a new child
-      
-            for(int i = 0; i < MAX_USER; i++){
-                if(user_list[i].m_status == SLOT_FULL){
-                    // poll child processes and handle user commands
-                    //make nonblocking, fix syntax
-                    read(user_list[i].m_fd_to_server);
-                }
+        //happens even if there isn't a new child
+        for(int i = 0; i < MAX_USER; i++){
+            if(user_list[i].m_status == SLOT_FULL){
+                // poll child processes and handle user commands
+                //make nonblocking, fix syntax
+                read(user_list[i].m_fd_to_server);
             }
-            // Poll stdin (input from the terminal) and handle admnistrative command
-            //handle commands like list, broadcast
-            //make nonblocking, fix syntax
-            read(0);
+        }
+        // Poll stdin (input from the terminal) and handle admnistrative command
+        //handle commands like list, broadcast
+        //make nonblocking, fix syntax
+        read(0);
             
         
 	
