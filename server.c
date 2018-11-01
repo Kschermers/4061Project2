@@ -98,10 +98,13 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
     if(idx >= 0){
         USER newUser = {};
         newUser.m_pid = pid;
+        
+        //how should this be declared???
         newUser.m_user_id;
         newUser.m_fd_to_user = pipe_to_child;
         newUser.m_fd_to_server = pipe_to_parent;
         newUser.m_status = SLOT_FULL;
+        
         user_list[idx] = newUser;
         return idx;
     }
@@ -286,7 +289,6 @@ int main(int argc, char * argv[])
 	fcntl(0, F_SETFL, fcntl(0, F_GETFL)| O_NONBLOCK);
 	print_prompt("admin");
 
-	//
 	while(1) {
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 
@@ -304,6 +306,7 @@ int main(int argc, char * argv[])
         int pipe_child_reading_from_client[2];
         int pipe_child_writing_to_client[2];
         
+        //Declerations in method???
         if(slot>0 && get_connection(user_id, pipe_child_reading_from_client, pipe_child_writing_to_client)>=0){
             int pid;
             
@@ -337,6 +340,7 @@ int main(int argc, char * argv[])
             if(user_list[i].m_status == SLOT_FULL){
                 // poll child processes and handle user commands
                 //make nonblocking, fix syntax
+                //Wrong buffer
                 read(user_list[i].m_fd_to_server,user_id,MAX_USER_ID);
             }
         }
