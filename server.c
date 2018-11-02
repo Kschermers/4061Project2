@@ -329,14 +329,14 @@ int main(int argc, char * argv[])
         char read_server_from_child[MAX_MSG];
 		char user_id[MAX_USER_ID];
 
-        if(slot>=0 && get_connection(user_id,
-					  pipes_children_reading_from_clients[slot],
-					  pipes_children_writing_to_clients[slot])==0){
+        if(slot>=0 && get_connection(user_id, 
+					  pipes_children_writing_to_clients[slot],
+					  pipes_children_reading_from_clients[slot])==0){
             
-            printf("DEBUG: get connection success\n\n");
+            //printf("DEBUG: get connection success\n\n");
         	pid = fork();
             if(pid == 0){
-                printf("DEBUG: inside child process\n\n");
+                //printf("DEBUG: inside child process\n\n");
                 flags = fcntl(pipes_children_writing_to_clients[slot][0], F_GETFL, 0);
                 fcntl(pipes_children_writing_to_clients[slot][0], F_SETFL, flags |
 																			   O_NONBLOCK);
@@ -351,22 +351,23 @@ int main(int argc, char * argv[])
 				
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
-				printf("DEBUG: About to enter child-process loop\n\n");
+				//printf("DEBUG: About to enter child-process loop\n\n");
                 while(1){
 					// POLLING USER:
 			       	// read from client
-					//printf("DEBUG: Attempting read - Child from Client\n\n");
-                	int bytesRead = read(user_list[slot].m_fd_to_server, read_child_from_client, MAX_MSG);
+					// printf("DEBUG: Attempting read - Child from Client\n\n");
+                	int bytesRead = read(pipes_children_reading_from_clients[slot][0], read_child_from_client, MAX_MSG);
                         
                     if(bytesRead>0){
-						printf("DEBUG: Message read from client to child!\nWriting to server...\n\n");
+						//printf("DEBUG: Message read from client to child!\n\n");
                         // if something was read, send it to server
+						printf("Message recieved: %s\n\n", read_child_from_client);
+						
 						if(write(pipes_SERVER_reading_from_children[slot][1], read_child_from_client, MAX_MSG) != -1){
-							printf("DEBUG: Write success!\n\n");
+							//printf("DEBUG: Write success!\n\n");
 						}else{
-							printf("DEBUG: Write failure!\n\n");
+							//printf("DEBUG: Write failure!\n\n");
 						}
-						exit(-1);
                     }
                     
 					// memset buffer
@@ -378,7 +379,7 @@ int main(int argc, char * argv[])
                 
             }else{
                 // Server process: Add a new user information into an empty slot
-                printf("DEBUG: Adding user\n\n");
+                //printf("DEBUG: Adding user\n\n");
                 add_user(slot, user_list, getpid(), user_id, pipes_children_writing_to_clients[slot][1], pipes_children_reading_from_clients[slot][0]);
                 //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
             }
@@ -394,7 +395,7 @@ int main(int argc, char * argv[])
 				// printf("DEBUG: Read attempt complete.\n\n");
                 if(bytesRead2 > 0){
                 	// if something was read, write it to stdout
-					printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
+					//printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
 					write(1, read_server_from_child, MAX_MSG);
 					
                 }
