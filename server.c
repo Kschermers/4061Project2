@@ -289,37 +289,35 @@ int main(int argc, char * argv[])
 	fcntl(0, F_SETFL, fcntl(0, F_GETFL)| O_NONBLOCK);
 	print_prompt("admin");
 
-	while(1) {
+    
+    // arrays of pipes to handle a max of 10 children
+    int pipes_SERVER_reading_from_children[10][2];
+    int pipes_SERVER_writing_to_children[10][2];
+    
+    int pipes_children_reading_from_clients[10][2];
+    int pipes_children_writing_to_clients[10][2];
+    
+    
+    for(int i = 0; i < 10; i++){
+        pipe(pipes_SERVER_reading_from_children[i]);
+        pipe(pipes_SERVER_writing_to_children[i]);
+        
+        close(pipes_SERVER_writing_to_children[i][1]);
+        close(pipes_SERVER_reading_from_children[i][0]);
+        
+        fcntl(pipes_SERVER_reading_from_children[i][0], F_SETFL, O_NONBLOCK);
+        fcntl(pipes_SERVER_writing_to_children[i][0], F_SETFL, O_NONBLOCK);
+    }
+    
+    while(1) {
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
-
-        	// arrays of pipes to handle a max of 10 children
-		int pipes_SERVER_reading_from_children[10][2];
-		int pipes_SERVER_writing_to_children[10][2];
-
-		int pipes_children_reading_from_clients[10][2];
-        	int pipes_children_writing_to_clients[10][2];
-		
-
-		for(int i = 0; i < 10; i++){
-			pipe(pipes_SERVER_reading_from_children[i]);
-			pipe(pipes_SERVER_writing_to_children[i]);
-
-			close(pipes_SERVER_writing_to_children[i][1]);
-			close(pipes_SERVER_reading_from_children[i][0]);
-
-			fcntl(pipes_SERVER_reading_from_children[i][0], F_SETFL, O_NONBLOCK);
-            		fcntl(pipes_SERVER_writing_to_children[i][0], F_SETFL, O_NONBLOCK);
-		}
-        	
+        
 		int slot = find_empty_slot(user_list);
         
         	char read_child_from_client[MAX_MSG];
        		char read_server_from_child[MAX_MSG];
 		char user_id[MAX_USER_ID];
 
-        	
-        
-        	
         	if(slot>=0 && get_connection(user_id, pipes_children_reading_from_clients[slot], pipes_children_writing_to_clients[slot])==0){
             		int pid;
             		pid = fork();

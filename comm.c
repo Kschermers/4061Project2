@@ -29,7 +29,7 @@ void send_fd(int socket, int *fds, int n)  // send fd by socket
 	memcpy ((int *) CMSG_DATA(cmsg), fds, n * sizeof (int));
 
 	if (sendmsg (socket, &msg, 0) < 0) {
-		printf("Failed to send message");
+		printf("Failed to send message\n\n");
 	}	
 }
 
@@ -46,7 +46,7 @@ int recv_fd(int socket, int n, int* fds) {
 	msg.msg_controllen = sizeof(buf);
 
 	if (recvmsg (socket, &msg, 0) < 0) {
-		printf("Failed to receive message");
+		printf("Failed to receive message\n\n");
 		return -1;
 	}
 
@@ -63,7 +63,7 @@ int connect_to_server(char * connect_point, char * user_id, int pipe_user_readin
 
 	server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (server_fd == -1) {
-		printf("Failed to connect server\n");
+		printf("Failed to connect server\n\n");
 		return -1;
 	}
 	
@@ -75,12 +75,12 @@ int connect_to_server(char * connect_point, char * user_id, int pipe_user_readin
 	strncpy(addr.sun_path, socket_address, sizeof(addr.sun_path) -1);
 
 	if (connect(server_fd, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) == -1) {
-		printf("Failed to connect to socket\n");
+		printf("Failed to connect to socket\n\n");
 		return -1;
 	}
 
 	if (write(server_fd, user_id, MAX_USER_ID) == -1) {
-		perror("Failed to write user id\n");
+		perror("Failed to write user id\n\n");
 		return -1;
 	}
 	
@@ -90,7 +90,7 @@ int connect_to_server(char * connect_point, char * user_id, int pipe_user_readin
 	}
 
 	if (recv_fd(server_fd, 2, pipe_user_writing_to_server) != 0) {
-		printf("Error in recv_fd\n");
+		printf("Error in recv_fd\n\n");
 		return -1;
 	}
 
@@ -106,7 +106,7 @@ int setup_connection(char * connect_point)
 
 	g_sfd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (g_sfd == -1) {
-		perror("Failed to create socket");
+		perror("Failed to create socket\n\n");
 		return -1;
 	}
 
@@ -115,7 +115,7 @@ int setup_connection(char * connect_point)
 	sprintf(socket_address, "/tmp/%s.socket", connect_point);
 
 	if (unlink(socket_address) == -1 && errno != ENOENT) {
-		perror("Removing socket file failed");
+		perror("Removing socket file failed\n\n");
 		return -1;
 	}
 
@@ -124,16 +124,16 @@ int setup_connection(char * connect_point)
 	strncpy(addr.sun_path, socket_address, sizeof(addr.sun_path) -1);
 
 	if (bind(g_sfd, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) == -1) {
-		perror("Failed to bind to socket");
+		perror("Failed to bind to socket\n\n");
 		return -1;
 	}
 
 	if (listen(g_sfd, 5) == -1) {
-		perror("Failed to listen on socket");
+		perror("Failed to listen on socket\n\n");
 		return -1;
 	}
 
-	printf("Wating user's connection.\n");
+	printf("Wating user's connection.\n\n");
 	fcntl(g_sfd, F_SETFL, O_NONBLOCK);
 }
 
@@ -146,7 +146,7 @@ int get_connection(char * user_id, int pipe_child_writing_to_user[2], int pipe_c
 		//int ret = fork();
 
 		if (pipe(pipe_child_writing_to_user) < 0 || pipe(pipe_child_reading_from_user) < 0) {
-			perror("Failed to create pipe\n");
+			perror("Failed to create pipe\n\n");
 			return -1;
 		}
 
@@ -154,7 +154,7 @@ int get_connection(char * user_id, int pipe_child_writing_to_user[2], int pipe_c
 		send_fd(cfd, pipe_child_reading_from_user, 2);
 
 		if(read(cfd, user_id, MAX_USER_ID) == -1) {
-			perror("Failed to get user id");
+			perror("Failed to get user id\n\n");
 			return -1;
 		}
 		close(cfd);

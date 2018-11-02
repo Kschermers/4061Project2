@@ -32,17 +32,14 @@ int signalled = 0;
 void handle_signals(int sig_num){signalled = 1;}
 /* -------------------------Main function for the client ----------------------*/
 void main(int argc, char * argv[]) {
-	write(1, "starting main\n", 256);
 	int pipe_to_user[2], pipe_to_server[2];
 
 	// You will need to get user name as a parameter, argv[1].
-	write(1, "connection start\n", 256);
 	if(connect_to_server("ok", argv[1], pipe_to_user, pipe_to_server) == -1) {
 		exit(-1);
 	}
 	
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
-   	write(1, "connection success\n", 256);
 	// signal handling
     struct sigaction my_sa = {};
     my_sa.sa_handler = handle_signals;
