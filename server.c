@@ -332,10 +332,12 @@ int main(int argc, char * argv[])
         if(slot>=0 && get_connection(user_id,
 					  pipes_children_reading_from_clients[slot],
 					  pipes_children_writing_to_clients[slot])==0){
-                
+            
+            printf("DEBUG: get connection success\n\n");
         	pid = fork();
             if(pid == 0){
-				flags = fcntl(pipes_children_writing_to_clients[slot][0], F_GETFL, 0);
+                printf("DEBUG: inside child process\n\n");
+                flags = fcntl(pipes_children_writing_to_clients[slot][0], F_GETFL, 0);
                 fcntl(pipes_children_writing_to_clients[slot][0], F_SETFL, flags |
 																			   O_NONBLOCK);
 
@@ -352,7 +354,7 @@ int main(int argc, char * argv[])
                 while(1){
 					// POLLING USER:
 			       	// read from client
-                	int bytesRead = read(pipes_children_reading_from_clients[slot][0], read_child_from_client, MAX_MSG);
+                	int bytesRead = read(user_list[slot].m_fd_to_user[0], read_child_from_client, MAX_MSG);
                         
                     if(bytesRead>0){
 						printf("DEBUG: Message read from client to child! Writing to server...\n\n");
@@ -373,7 +375,9 @@ int main(int argc, char * argv[])
                 
             }else{
                 // Server process: Add a new user information into an empty slot
-            	add_user(slot, user_list, getpid(), user_id, pipes_children_writing_to_clients[slot][1], pipes_children_reading_from_clients[slot][0]);
+                printf("DEBUG: Adding user\n\n");
+                add_user(slot, user_list, getpid(), user_id, pipes_children_reading_from_clients[slot], pipes_SERVER_reading_from_children[slot]);
+                //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
             }
         }
             
