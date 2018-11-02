@@ -171,7 +171,8 @@ void cleanup_users(USER * user_list)
 {
 	// go over the user list and check for any empty slots
 	// call cleanup user for each of those users.
-    for(int i = 0; i < MAX_USER; i++){
+	int i;
+    for(i = 0; i < MAX_USER; i++){
         if(user_list[i].m_status==SLOT_EMPTY){
             cleanup_user(i, user_list);
         }
@@ -297,35 +298,52 @@ int main(int argc, char * argv[])
     int pipes_children_reading_from_clients[10][2];
     int pipes_children_writing_to_clients[10][2];
     
-    
-    for(int i = 0; i < 10; i++){
+    int flags;
+	int i = 0;
+    for(; i < 10; i++){
         
         pipe(pipes_SERVER_reading_from_children[i]);
         pipe(pipes_SERVER_writing_to_children[i]);
         
         close(pipes_SERVER_writing_to_children[i][1]);
         close(pipes_SERVER_reading_from_children[i][0]);
-        
-        fcntl(pipes_SERVER_reading_from_children[i][0], F_SETFL, O_NONBLOCK);
-        fcntl(pipes_SERVER_writing_to_children[i][0], F_SETFL, O_NONBLOCK);
+		
+        flags = fcntl(pipes_SERVER_reading_from_children[i][0], F_GETFL, 0);
+        fcntl(pipes_SERVER_reading_from_children[i][0], F_SETFL, flags |
+																 O_NONBLOCK);
+
+		flags = fcntl(pipes_SERVER_writing_to_children[i][0], F_GETFL, 0);
+        fcntl(pipes_SERVER_writing_to_children[i][0], F_SETFL, flags |
+															   O_NONBLOCK);
     }
-    
+
+	// declarations before loop    
+	int slot;
+	int pid;
+
+
     while(1) {
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
         
-		int slot = find_empty_slot(user_list);
+		slot = find_empty_slot(user_list);
         
         char read_child_from_client[MAX_MSG];
         char read_server_from_child[MAX_MSG];
 		char user_id[MAX_USER_ID];
 
-        	if(slot>=0 && get_connection(user_id, pipes_children_reading_from_clients[slot], pipes_children_writing_to_clients[slot])==0){
-                int pid;
+        	if(slot>=0 && get_connection(user_id,
+						  pipes_children_reading_from_clients[slot],
+						  pipes_children_writing_to_clients[slot])==0){
+                
                 pid = fork();
-
                 if(pid == 0){
-                    fcntl(pipes_children_writing_to_clients[slot][0], F_SETFL, O_NONBLOCK);
-                    fcntl(pipes_children_reading_from_clients[slot][0], F_SETFL, O_NONBLOCK);
+					flags = fcntl(pipes_children_writing_to_clients[slot][0], F_GETFL, 0);
+                    fcntl(pipes_children_writing_to_clients[slot][0], F_SETFL, flags |
+																			   O_NONBLOCK);
+
+					flags = fcntl(pipes_children_reading_from_clients[slot][0], F_GETFL, 0);
+                    fcntl(pipes_children_reading_from_clients[slot][0], F_SETFL, flags |
+																				 O_NONBLOCK);
                     
                     //close ends we don't need
                     close(pipes_children_reading_from_clients[slot][1]);
@@ -359,13 +377,13 @@ int main(int argc, char * argv[])
             }
             
             //happens even if there isn't a new child
-            for(int i = 0; i < MAX_USER; i++){
+            for(i = 0; i < MAX_USER; i++){
             
             if(user_list[i].m_status == SLOT_FULL){
                 // poll child processes and handle user commands
                 //make nonblocking, fix syntax
                 //Wrong buffer
-                read(user_list[i].m_fd_to_server,user_id,MAX_USER_ID);
+                read(user_list[i].m_fd_to_server, user_id, MAX_USER_ID);
                 //switch statement to handle commands use util function getcommandtype
             }
         }
