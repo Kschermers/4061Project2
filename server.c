@@ -351,19 +351,22 @@ int main(int argc, char * argv[])
 				
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
+				printf("DEBUG: About to enter child-process loop\n\n");
                 while(1){
 					// POLLING USER:
 			       	// read from client
-                	int bytesRead = read(user_list[slot].m_fd_to_user[0], read_child_from_client, MAX_MSG);
+					//printf("DEBUG: Attempting read - Child from Client\n\n");
+                	int bytesRead = read(user_list[slot].m_fd_to_server, read_child_from_client, MAX_MSG);
                         
                     if(bytesRead>0){
-						printf("DEBUG: Message read from client to child! Writing to server...\n\n");
+						printf("DEBUG: Message read from client to child!\nWriting to server...\n\n");
                         // if something was read, send it to server
 						if(write(pipes_SERVER_reading_from_children[slot][1], read_child_from_client, MAX_MSG) != -1){
 							printf("DEBUG: Write success!\n\n");
 						}else{
 							printf("DEBUG: Write failure!\n\n");
 						}
+						exit(-1);
                     }
                     
 					// memset buffer
@@ -376,7 +379,7 @@ int main(int argc, char * argv[])
             }else{
                 // Server process: Add a new user information into an empty slot
                 printf("DEBUG: Adding user\n\n");
-                add_user(slot, user_list, getpid(), user_id, pipes_children_reading_from_clients[slot], pipes_SERVER_reading_from_children[slot]);
+                add_user(slot, user_list, getpid(), user_id, pipes_children_writing_to_clients[slot][1], pipes_children_reading_from_clients[slot][0]);
                 //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
             }
         }
@@ -392,7 +395,6 @@ int main(int argc, char * argv[])
                 if(bytesRead2 > 0){
                 	// if something was read, write it to stdout
 					printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
-					exit(-1);
 					write(1, read_server_from_child, MAX_MSG);
 					
                 }

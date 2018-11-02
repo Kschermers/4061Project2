@@ -77,7 +77,11 @@ void main(int argc, char * argv[]) {
 		printf("DEBUG: Read from pipe complete!\n\n");
         if(bytesRead > 0){
 			printf("DEBUG: >0 bytes read from pipe\n\n");
-            write(1, buf_recieve, MAX_MSG);
+            if(write(1, buf_recieve, MAX_MSG) != -1){
+				printf("DEBUG: Write of message to stdout succeeded!\n\n");
+			}else{
+				printf("DEBUG: Write of message to stdout failed\n\n");
+			}
         }
 		memset(buf_recieve, '\0', MAX_MSG);
 
@@ -87,8 +91,11 @@ void main(int argc, char * argv[]) {
 		printf("DEBUG: Read from stdin complete\n\n");
         if(bytesRead2 > 0){
 			printf("DEBUG: >0 bytes read from stdin\n\n");
-            write(pipe_to_server[1], buf_send, MAX_MSG);
-			printf("DEBUG: write to pipe complete.\n\n");
+            if(write(pipe_to_server[1], buf_send, MAX_MSG) != -1){
+				printf("DEBUG: Write from client to server succeeded!\n\n");
+			}else{
+				printf("DEBUG: Write from client to server failed\n\n");
+			}
         }
 		memset(buf_send, '\0', MAX_MSG);
 		printf("DEBUG: End of user-process loop\n\n");
