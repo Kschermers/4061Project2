@@ -51,9 +51,7 @@ void main(int argc, char * argv[]) {
     
 	// set up buffers
 	char buf_send[MAX_MSG];
-	char buf_recieve[MAX_MSG];
-    
-    int writRet;
+	char buf_recieve[MAX_MSG];	
 
 	// close unused pipe ends
     //Should we close these here?? Cause of the comm methods creating the pipe thing..
@@ -79,8 +77,7 @@ void main(int argc, char * argv[]) {
 		printf("DEBUG: Read from pipe complete!\n\n");
         if(bytesRead > 0){
 			printf("DEBUG: >0 bytes read from pipe\n\n");
-            writRet = write(1, buf_recieve, MAX_MSG);
-            printf("DEBUG: %d bytes written to stdout\n\n",writRet);
+            write(1, buf_recieve, MAX_MSG);
         }
 		memset(buf_recieve, '\0', MAX_MSG);
 
@@ -90,8 +87,8 @@ void main(int argc, char * argv[]) {
 		printf("DEBUG: Read from stdin complete\n\n");
         if(bytesRead2 > 0){
 			printf("DEBUG: >0 bytes read from stdin\n\n");
-            writRet = write(pipe_to_server[1], buf_send, MAX_MSG);
-			printf("DEBUG: %d bytes written to pipe complete.\n\n",writRet);
+            write(pipe_to_server[1], buf_send, MAX_MSG);
+			printf("DEBUG: write to pipe complete.\n\n");
         }
 		memset(buf_send, '\0', MAX_MSG);
 		printf("DEBUG: End of user-process loop\n\n");
