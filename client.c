@@ -65,15 +65,16 @@ void main(int argc, char * argv[]) {
 	printf("DEBUG: Read from server set to nonblocking!\n\n");
 
 	// make stdin nonblocking
-    flags = fcntl(0, F_GETFL, 0); /* get current file status flags */
-    flags |= O_NONBLOCK;    /* turn off blocking flag */
-    fcntl(0, F_SETFL,0);    /* set up non-blocking read */
+    //flags = fcntl(0, F_GETFL, 0); /* get current file status flags */
+    //flags |= O_NONBLOCK;    /* turn off blocking flag */
+    //fcntl(0, F_SETFL,0);    /* set up non-blocking read */
 
 	printf("DEBUG: About to enter user-process loop\n\n");
 	while(!signalled){
 		// poll pipe retrieved and print it to stdout
 		printf("DEBUG: polling pipe\n\n");
 		int bytesRead = read(pipe_to_user[0], buf_recieve, MAX_MSG);
+		printf("DEBUG: Read from pipe complete!\n\n");
         if(bytesRead > 0){
 			printf("DEBUG: >0 bytes read from pipe\n\n");
             write(1, buf_recieve, MAX_MSG);
@@ -83,9 +84,11 @@ void main(int argc, char * argv[]) {
 		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
       	printf("DEBUG: polling stdin...\n\n");
 		int bytesRead2 = read(0, buf_send, MAX_MSG);
+		printf("DEBUG: Read from stdin complete\n\n");
         if(bytesRead2 > 0){
 			printf("DEBUG: >0 bytes read from stdin\n\n");
             write(pipe_to_server[1], buf_send, MAX_MSG);
+			printf("DEBUG: write to pipe complete.\n\n");
         }
 		memset(buf_send, '\0', MAX_MSG);
 		printf("DEBUG: End of user-process loop\n\n");

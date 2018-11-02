@@ -316,74 +316,83 @@ int main(int argc, char * argv[])
         fcntl(pipes_SERVER_writing_to_children[i][0], F_SETFL, flags |
 															   O_NONBLOCK);
     }
-
+	/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 	// declarations before loop    
 	int slot;
 	int pid;
 
 
     while(1) {
-		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
-        
 		slot = find_empty_slot(user_list);
         
         char read_child_from_client[MAX_MSG];
         char read_server_from_child[MAX_MSG];
 		char user_id[MAX_USER_ID];
 
-        	if(slot>=0 && get_connection(user_id,
-						  pipes_children_reading_from_clients[slot],
-						  pipes_children_writing_to_clients[slot])==0){
+        if(slot>=0 && get_connection(user_id,
+					  pipes_children_reading_from_clients[slot],
+					  pipes_children_writing_to_clients[slot])==0){
                 
-                pid = fork();
-                if(pid == 0){
-					flags = fcntl(pipes_children_writing_to_clients[slot][0], F_GETFL, 0);
-                    fcntl(pipes_children_writing_to_clients[slot][0], F_SETFL, flags |
+        	pid = fork();
+            if(pid == 0){
+				flags = fcntl(pipes_children_writing_to_clients[slot][0], F_GETFL, 0);
+                fcntl(pipes_children_writing_to_clients[slot][0], F_SETFL, flags |
 																			   O_NONBLOCK);
 
-					flags = fcntl(pipes_children_reading_from_clients[slot][0], F_GETFL, 0);
-                    fcntl(pipes_children_reading_from_clients[slot][0], F_SETFL, flags |
+				flags = fcntl(pipes_children_reading_from_clients[slot][0], F_GETFL, 0);
+                fcntl(pipes_children_reading_from_clients[slot][0], F_SETFL, flags |
 																				 O_NONBLOCK);
                     
-                    //close ends we don't need
-                    close(pipes_children_reading_from_clients[slot][1]);
-                    close(pipes_children_writing_to_clients[slot][0]);
+                //close ends we don't need
+                close(pipes_children_reading_from_clients[slot][1]);
+                close(pipes_children_writing_to_clients[slot][0]);
 				
-                    // Child process: poll users and SERVER
-                    //when read = 0 send message to server, pipe is broken
-                    while(1){
-			       
-                        int bytesRead = read(pipes_children_reading_from_clients[slot][0],read_child_from_client,MAX_MSG);
+                // Child process: poll users and SERVER
+                //when read = 0 send message to server, pipe is broken
+                while(1){
+					// POLLING USER:
+			       	// read from client
+                	int bytesRead = read(pipes_children_reading_from_clients[slot][0], read_child_from_client, MAX_MSG);
                         
-                        if(bytesRead>0){
-                            //send to write end of child writing to server
-                        }
-                        
-                        //memset buffer
-                        int bytesRead2 = read(pipes_SERVER_reading_from_children[slot][0],read_server_from_child,MAX_MSG);
-                        
-                        if(bytesRead2 > 0){
-                            //send to write
-                        }
-                        
-                        //memset buffer
-                		}
+                    if(bytesRead>0){
+						printf("DEBUG: Message read from client to child! Writing to server...\n\n");
+                        // if something was read, send it to server
+						if(write(pipes_SERVER_reading_from_children[slot][1], read_child_from_client, MAX_MSG) != -1){
+							printf("DEBUG: Write success!\n\n");
+						}else{
+							printf("DEBUG: Write failure!\n\n");
+						}
+                    }
+                    
+					// memset buffer
+                    memset(read_child_from_client, '\0', MAX_MSG);
+
+					// POLLING SERVER:
+					// <<<<<<<NEEEDS TO BE DONE STILL>>>>>>>>
+                }
                 
-                }
-                else{
-                    // Server process: Add a new user information into an empty slot
-                	add_user(slot, user_list, getpid(), user_id, pipes_children_writing_to_clients[slot][1], pipes_children_reading_from_clients[slot][0]);
-                }
+            }else{
+                // Server process: Add a new user information into an empty slot
+            	add_user(slot, user_list, getpid(), user_id, pipes_children_writing_to_clients[slot][1], pipes_children_reading_from_clients[slot][0]);
             }
+        }
             
-            //happens even if there isn't a new child
-            for(i = 0; i < MAX_USER; i++){
-            
-            if(user_list[i].m_status == SLOT_FULL){
-                // poll child processes and handle user commands
-                //make nonblocking, fix syntax
-                //Wrong buffer
-                read(user_list[i].m_fd_to_server, user_id, MAX_USER_ID);
+        // happens even if there isn't a new child
+		// printf("DEBUG: polling children for messages...\n\n");
+        for(i = 0; i < MAX_USER; i++){
+        	if(user_list[i].m_status == SLOT_FULL){
+				// printf("DEBUG: User slot %d is full. Attempting read...\n\n", i);
+            	// poll child processes and handle user commands
+				int bytesRead2 = read(pipes_SERVER_reading_from_children[i][0], read_server_from_child, MAX_MSG);
+				// printf("DEBUG: Read attempt complete.\n\n");
+                if(bytesRead2 > 0){
+                	// if something was read, write it to stdout
+					printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
+					exit(-1);
+					write(1, read_server_from_child, MAX_MSG);
+					
+                }
+                // SAM: idk what this line is: read(user_list[i].m_fd_to_server, user_id, MAX_USER_ID);
                 //switch statement to handle commands use util function getcommandtype
             }
         }
