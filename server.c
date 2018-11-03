@@ -309,12 +309,10 @@ int main(int argc, char * argv[])
         close(pipes_SERVER_reading_from_children[i][0]);
 		
         flags = fcntl(pipes_SERVER_reading_from_children[i][1], F_GETFL, 0);
-		printf("flag: %d\n",flags);
         fcntl(pipes_SERVER_reading_from_children[i][1], F_SETFL, flags |
 																 O_NONBLOCK);
 
 		flags = fcntl(pipes_SERVER_writing_to_children[i][0], F_GETFL, 0);
-		printf("flag: %d\n",flags);
         fcntl(pipes_SERVER_writing_to_children[i][0], F_SETFL, flags |
 															   O_NONBLOCK);
     }
@@ -343,8 +341,8 @@ int main(int argc, char * argv[])
                 fcntl(pipes_children_writing_to_clients[slot][0], F_SETFL, flags |
 																			   O_NONBLOCK);
 
-				flags = fcntl(pipes_children_reading_from_clients[slot][0], F_GETFL, 0);
-                fcntl(pipes_children_reading_from_clients[slot][0], F_SETFL, flags |
+				flags = fcntl(pipes_children_reading_from_clients[slot][1], F_GETFL, 0);
+                fcntl(pipes_children_reading_from_clients[slot][1], F_SETFL, flags |
 																				 O_NONBLOCK);
                     
                 //close ends we don't need
