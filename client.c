@@ -73,6 +73,7 @@ void main(int argc, char * argv[]) {
 	while(!signalled){
 		// poll pipe retrieved and print it to stdout
 		//printf("DEBUG: polling pipe\n\n");
+        memset(buf_recieve, '\0', MAX_MSG);
 		int bytesRead = read(pipe_to_user[0], buf_recieve, MAX_MSG);
 		//printf("DEBUG: Read from pipe complete!\n\n");
         if(bytesRead > 0){
@@ -87,10 +88,12 @@ void main(int argc, char * argv[]) {
 
 		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
       	//printf("DEBUG: polling stdin...\n\n");
+        memset(buf_send, '\0', MAX_MSG);
 		int bytesRead2 = read(0, buf_send, MAX_MSG);
 		//printf("DEBUG: Read from stdin complete\n\n");
         if(bytesRead2 > 0){
 			//printf("DEBUG: >0 bytes read from stdin\n\n");
+            
             if(write(pipe_to_server[1], buf_send, MAX_MSG) != -1){
 				//printf("DEBUG: Write from client to server succeeded!\n\n");
 			}else{
