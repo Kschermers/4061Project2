@@ -335,14 +335,22 @@ int main(int argc, char * argv[])
             pipe(pipe_server_from_child);
             pipe(pipe_server_to_child);
             
-            close(pipe_server_to_child[1]);
-            close(pipe_server_from_child[0]);
-            
             flags = fcntl(pipe_server_from_child[1], F_GETFL, 0);
             fcntl(pipe_server_from_child[1], F_SETFL, flags | O_NONBLOCK);
             
             flags = fcntl(pipe_server_to_child[0], F_GETFL, 0);
             fcntl(pipe_server_to_child[0], F_SETFL, flags | O_NONBLOCK);
+            
+            flags = fcntl(pipe_server_from_child[0], F_GETFL, 0);
+            fcntl(pipe_server_from_child[0], F_SETFL, flags | O_NONBLOCK);
+            
+            flags = fcntl(pipe_server_to_child[1], F_GETFL, 0);
+            fcntl(pipe_server_to_child[1], F_SETFL, flags | O_NONBLOCK);
+            
+            close(pipe_server_to_child[1]);
+            close(pipe_server_from_child[0]);
+            
+            
             
         	pid = fork();
             if(pid == 0){
@@ -352,7 +360,13 @@ int main(int argc, char * argv[])
 
 				flags = fcntl(pipe_child_from_client[1], F_GETFL, 0);
                 fcntl(pipe_child_from_client[1], F_SETFL, flags | O_NONBLOCK);
-                    
+                
+                flags = fcntl(pipe_child_to_client[1], F_GETFL, 0);
+                fcntl(pipe_child_to_client[1], F_SETFL, flags | O_NONBLOCK);
+                
+                flags = fcntl(pipe_child_from_client[0], F_GETFL, 0);
+                fcntl(pipe_child_from_client[0], F_SETFL, flags | O_NONBLOCK);
+                
                 //close ends we don't need
                 close(pipe_child_to_client[1]);
                 close(pipe_child_from_client[0]);
