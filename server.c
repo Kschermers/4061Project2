@@ -363,7 +363,7 @@ int main(int argc, char * argv[])
                 while(1){
 					// POLLING USER:
 			       	// read from client
-					printf("DEBUG: Attempting read - Child from Client\n\n");
+					//printf("DEBUG: Attempting read - Child from Client\n\n");
                 	int bytesRead = read(pipe_child_from_client[0], read_child_from_client, MAX_MSG);
         
                     if(bytesRead>0){
