@@ -372,7 +372,7 @@ int main(int argc, char * argv[])
 						if(write(pipe_server_from_child[1], read_child_from_client, MAX_MSG) != -1){
 							//printf("DEBUG: Write success!\n\n");
 						}else{
-                            printf("Exited on bad write\n\nœ");
+                            printf("Exited on bad write\n\n");
                             exit(-1);
                             //printf("DEBUG: Write failure!\n\n");
 						}
