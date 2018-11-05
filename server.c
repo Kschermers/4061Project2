@@ -309,23 +309,9 @@ int main(int argc, char * argv[])
 	int slot;
 	int pid;
     
-    int pipe_server_from_child[2];
-    int pipe_server_to_child[2];
-    
-    pipe(pipe_server_from_child);
-    pipe(pipe_server_to_child);
-    
-    close(pipe_server_to_child[1]);
-    close(pipe_server_from_child[0]);
-    
+   
     int pipe_child_from_client[2];
     int pipe_child_to_client[2];
-    
-    flags = fcntl(pipe_server_from_child[1], F_GETFL, 0);
-    fcntl(pipe_server_from_child[1], F_SETFL, flags | O_NONBLOCK);
-    
-    flags = fcntl(pipe_server_to_child[0], F_GETFL, 0);
-    fcntl(pipe_server_to_child[0], F_SETFL, flags | O_NONBLOCK);
     
     int flags, i;
     
@@ -343,6 +329,21 @@ int main(int argc, char * argv[])
 					  pipe_child_from_client)==0){
             
             //printf("DEBUG: get connection success\n\n");
+            int pipe_server_from_child[2];
+            int pipe_server_to_child[2];
+            
+            pipe(pipe_server_from_child);
+            pipe(pipe_server_to_child);
+            
+            close(pipe_server_to_child[1]);
+            close(pipe_server_from_child[0]);
+            
+            flags = fcntl(pipe_server_from_child[1], F_GETFL, 0);
+            fcntl(pipe_server_from_child[1], F_SETFL, flags | O_NONBLOCK);
+            
+            flags = fcntl(pipe_server_to_child[0], F_GETFL, 0);
+            fcntl(pipe_server_to_child[0], F_SETFL, flags | O_NONBLOCK);
+            
         	pid = fork();
             if(pid == 0){
                 //printf("DEBUG: inside child process\n\n");
@@ -391,23 +392,10 @@ int main(int argc, char * argv[])
                 //printf("DEBUG: Adding user\n\n");
                 add_user(slot, user_list, getpid(), user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
                 
-                int pipe_server_from_child[2];
-                int pipe_server_to_child[2];
-                
-                pipe(pipe_server_from_child);
-                pipe(pipe_server_to_child);
-                
-                close(pipe_server_to_child[1]);
-                close(pipe_server_from_child[0]);
-                
                 int pipe_child_from_client[2];
                 int pipe_child_to_client[2];
                 
-                flags = fcntl(pipe_server_from_child[1], F_GETFL, 0);
-                fcntl(pipe_server_from_child[1], F_SETFL, flags | O_NONBLOCK);
-                
-                flags = fcntl(pipe_server_to_child[0], F_GETFL, 0);
-                fcntl(pipe_server_to_child[0], F_SETFL, flags | O_NONBLOCK);
+               
                 //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
             }
         }
