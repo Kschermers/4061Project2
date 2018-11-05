@@ -328,7 +328,7 @@ int main(int argc, char * argv[])
 					  pipe_child_to_client,
 					  pipe_child_from_client)==0){
             
-            printf("DEBUG: get connection success\n\n");
+            //printf("DEBUG: get connection success\n\n");
             int pipe_server_from_child[2];
             int pipe_server_to_child[2];
             
@@ -350,23 +350,22 @@ int main(int argc, char * argv[])
             close(pipe_server_to_child[1]);
             close(pipe_server_from_child[0]);
             
+            flags = fcntl(pipe_child_to_client[0], F_GETFL, 0);
+            fcntl(pipe_child_to_client[0], F_SETFL, flags | O_NONBLOCK);
             
+            flags = fcntl(pipe_child_from_client[1], F_GETFL, 0);
+            fcntl(pipe_child_from_client[1], F_SETFL, flags | O_NONBLOCK);
+            
+            flags = fcntl(pipe_child_to_client[1], F_GETFL, 0);
+            fcntl(pipe_child_to_client[1], F_SETFL, flags | O_NONBLOCK);
+            
+            flags = fcntl(pipe_child_from_client[0], F_GETFL, 0);
+            fcntl(pipe_child_from_client[0], F_SETFL, flags | O_NONBLOCK);
+
             
         	pid = fork();
             if(pid == 0){
-                //printf("DEBUG: inside child process\n\n");
-                flags = fcntl(pipe_child_to_client[0], F_GETFL, 0);
-                fcntl(pipe_child_to_client[0], F_SETFL, flags | O_NONBLOCK);
-
-				flags = fcntl(pipe_child_from_client[1], F_GETFL, 0);
-                fcntl(pipe_child_from_client[1], F_SETFL, flags | O_NONBLOCK);
-                
-                flags = fcntl(pipe_child_to_client[1], F_GETFL, 0);
-                fcntl(pipe_child_to_client[1], F_SETFL, flags | O_NONBLOCK);
-                
-                flags = fcntl(pipe_child_from_client[0], F_GETFL, 0);
-                fcntl(pipe_child_from_client[0], F_SETFL, flags | O_NONBLOCK);
-                
+                //printf("DEBUG: inside child process\n\n");                
                 //close ends we don't need
                 close(pipe_child_to_client[1]);
                 close(pipe_child_from_client[0]);
@@ -381,9 +380,9 @@ int main(int argc, char * argv[])
                 	int bytesRead = read(pipe_child_from_client[0], read_child_from_client, MAX_MSG);
         
                     if(bytesRead>0){
-						printf("DEBUG: Message read from client to child!\n\n");
+						//printf("DEBUG: Message read from client to child!\n\n");
                         // if something was read, send it to server
-						printf("Message recieved: %s\n\n", read_child_from_client);
+					//	printf("Message recieved: %s\n\n", read_child_from_client);
 						
 						if(write(pipe_server_from_child[1], read_child_from_client, MAX_MSG) != -1){
 							//printf("DEBUG: Write success!\n\n");
