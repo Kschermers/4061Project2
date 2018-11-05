@@ -378,7 +378,7 @@ int main(int argc, char * argv[])
 			       	// read from client
 					//printf("DEBUG: Attempting read - Child from Client\n\n");
                 	int bytesRead = read(pipe_child_from_client[0], read_child_from_client, MAX_MSG);
-        
+                    
                     if(bytesRead>0){
 						//printf("DEBUG: Message read from client to child!\n\n");
                         // if something was read, send it to server
@@ -425,17 +425,47 @@ int main(int argc, char * argv[])
                 	// if something was read, write it to stdout
 					//printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
 					write(1, read_server_from_child, MAX_MSG);
-					
+                    command_type command = get_command_type(read_server_from_child);
+                    if(command == P2P){
+                        printf("p2p");
+                    }
+                    else if(command == LIST){
+                        printf("list");
+                    }
+                    else if(command == EXIT){
+                        printf("exit");
+                    }
+                    else{
+                        printf("client broadcast");
+                        //broadcast message
+                    }
                 }
-
+                
                 //switch statement to handle commands use util function getcommandtype
             }
         }
         // Poll stdin (input from the terminal) and handle admnistrative command
         //handle commands like list, broadcast
-        //make nonblocking, fix syntax
-        //stdin should already be nonblocking?
-        //read(0);
+        char server_from_stdin[MAX_MSG];
+        memset(server_from_stdin, '\0', MAX_MSG);
+        int bytesRead = read(0, server_from_stdin, MAX_MSG);
+        if(bytesRead > 0){
+            command_type command = get_command_type(server_from_stdin);
+            if(command==LIST){
+                printf("list");
+            }
+            else if(command == KICK){
+                printf("kick");
+            }
+            else if(command == EXIT){
+                printf("exit");
+            }
+            else{
+                printf("server broadcast");
+                //broadcast
+            }
+        }
+        memset(server_from_stdin, '\0', MAX_MSG);
             
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 	}

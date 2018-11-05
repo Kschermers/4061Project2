@@ -32,12 +32,12 @@ int signalled = 0;
 void handle_signals(int sig_num){signalled = 1;}
 /* -------------------------Main function for the client ----------------------*/
 void main(int argc, char * argv[]) {
-	int pipe_to_user[2], pipe_to_server[2];
+	int pipe_from_child[2], pipe_to_child[2];
 	int flags;
 
 	//printf("DEBUG: connecting to server...\n\n");
 	// You will need to get user name as a parameter, argv[1].
-	if(connect_to_server("ok", argv[1], pipe_to_user, pipe_to_server) == -1) {
+	if(connect_to_server("ok", argv[1], pipe_from_child, pipe_to_child) == -1) {
 		exit(-1);
 	}
 	//printf("DEBUG: connection success!\n\n");
@@ -55,13 +55,13 @@ void main(int argc, char * argv[]) {
 
 	// close unused pipe ends
     //Should we close these here?? Cause of the comm methods creating the pipe thing..
-	close(pipe_to_user[1]);
-	close(pipe_to_server[0]);
+	close(pipe_from_child[1]);
+	close(pipe_to_child[0]);
 	//printf("DEBUG: Closed pipes!\n\n");
 	
 	// make reading from server nonblocking
-	flags = fcntl(pipe_to_user[0], F_GETFL, 0);
-	fcntl(pipe_to_user[0], F_SETFL, flags | O_NONBLOCK);
+	flags = fcntl(pipe_from_child[0], F_GETFL, 0);
+	fcntl(pipe_from_child[0], F_SETFL, flags | O_NONBLOCK);
 	//printf("DEBUG: Read from server set to nonblocking!\n\n");
 
 	// make stdin nonblocking
@@ -74,7 +74,7 @@ void main(int argc, char * argv[]) {
 		// poll pipe retrieved and print it to stdout
 		//printf("DEBUG: polling pipe\n\n");
         memset(buf_recieve, '\0', MAX_MSG);
-		int bytesRead = read(pipe_to_user[0], buf_recieve, MAX_MSG);
+		int bytesRead = read(pipe_from_child[0], buf_recieve, MAX_MSG);
 		//printf("DEBUG: Read from pipe complete!\n\n");
         if(bytesRead > 0){
 			//printf("DEBUG: >0 bytes read from pipe\n\n");
@@ -94,7 +94,7 @@ void main(int argc, char * argv[]) {
         if(bytesRead2 > 0){
 			//printf("DEBUG: >0 bytes read from stdin\n\n");
             
-            if(write(pipe_to_server[1], buf_send, MAX_MSG) != -1){
+            if(write(pipe_to_child[1], buf_send, MAX_MSG) != -1){
 				//printf("DEBUG: Write from client to server succeeded!\n\n");
 			}else{
 				//printf("DEBUG: Write from client to server failed\n\n");
