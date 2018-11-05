@@ -427,7 +427,7 @@ int main(int argc, char * argv[])
 					//printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
 					write(1, read_server_from_child, MAX_MSG);
                     enum command_type command = get_command_type(read_server_from_child);
-                    printf("parsed user command: %d\n", command);
+                    //printf("parsed user command: %d\n", command);
                     if(command == P2P){
                         printf("p2p user command read correctly\n");
                     }
@@ -457,7 +457,7 @@ int main(int argc, char * argv[])
         
         if(bytesRead > 0){
             enum command_type command = get_command_type(server_from_stdin);
-            printf("parsed server command: %d\n", command);
+            //printf("parsed server command: %d\n", command);
             if(command==LIST){
                 printf("list server command read correctly\n");
             }
