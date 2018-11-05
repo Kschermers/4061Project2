@@ -365,7 +365,7 @@ int main(int argc, char * argv[])
             
         	pid = fork();
             if(pid == 0){
-                //printf("DEBUG: inside child process\n\n");                
+                //printf("DEBUG: inside child process\n\n");
                 //close ends we don't need
                 close(pipe_child_to_client[1]);
                 close(pipe_child_from_client[0]);
@@ -382,7 +382,7 @@ int main(int argc, char * argv[])
                     if(bytesRead>0){
 						//printf("DEBUG: Message read from client to child!\n\n");
                         // if something was read, send it to server
-					//	printf("Message recieved: %s\n\n", read_child_from_client);
+						printf("Message recieved: %s\n\n", read_child_from_client);
 						
 						if(write(pipe_server_from_child[1], read_child_from_client, MAX_MSG) != -1){
 							//printf("DEBUG: Write success!\n\n");
