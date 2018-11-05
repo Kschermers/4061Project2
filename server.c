@@ -418,13 +418,13 @@ int main(int argc, char * argv[])
 		// printf("DEBUG: polling children for messages...\n\n");
         for(i = 0; i < MAX_USER; i++){
         	if(user_list[i].m_status == SLOT_FULL){
-				printf("DEBUG: User slot %d is full. Attempting read...\n\n", i);
+				//printf("DEBUG: User slot %d is full. Attempting read...\n\n", i);
             	// poll child processes and handle user commands
 				int bytesRead2 = read(user_list[i].m_fd_to_server, read_server_from_child, MAX_MSG);
 				// printf("DEBUG: Read attempt complete.\n\n");
                 if(bytesRead2 > 0){
                 	// if something was read, write it to stdout
-					printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
+					//printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
 					write(1, read_server_from_child, MAX_MSG);
 					
                 }
