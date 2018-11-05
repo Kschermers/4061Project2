@@ -308,17 +308,16 @@ int main(int argc, char * argv[])
 	// declarations before loop    
 	int slot;
 	int pid;
-
+    
+    int pipe_server_from_child[2];
+    int pipe_server_to_child[2];
+    
+    int pipe_child_from_client[2];
+    int pipe_child_to_client[2];
+    
+    int flags, i;
+    
     while(1) {
-        
-        int pipe_server_from_child[2];
-        int pipe_server_to_child[2];
-        
-        int pipe_child_from_client[2];
-        int pipe_child_to_client[2];
-        
-        int flags, i;
-        
         pipe(pipe_server_from_child);
         pipe(pipe_server_to_child);
         
@@ -352,9 +351,9 @@ int main(int argc, char * argv[])
                 fcntl(pipe_child_from_client[1], F_SETFL, flags | O_NONBLOCK);
                     
                 //close ends we don't need
-                close(pipe_child_from_client[1]);
-                close(pipe_child_to_client[0]);
-				
+                close(pipe_child_to_client[1]);
+                close(pipe_child_from_client[0]);
+               
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
 				//printf("DEBUG: About to enter child-process loop\n\n");
@@ -399,7 +398,7 @@ int main(int argc, char * argv[])
         	if(user_list[i].m_status == SLOT_FULL){
 				// printf("DEBUG: User slot %d is full. Attempting read...\n\n", i);
             	// poll child processes and handle user commands
-				int bytesRead2 = read(pipe_server_from_child[0], read_server_from_child, MAX_MSG);
+				int bytesRead2 = read(user_list[i].m_fd_to_server, read_server_from_child, MAX_MSG);
 				// printf("DEBUG: Read attempt complete.\n\n");
                 if(bytesRead2 > 0){
                 	// if something was read, write it to stdout
