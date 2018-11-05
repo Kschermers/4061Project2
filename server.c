@@ -427,18 +427,18 @@ int main(int argc, char * argv[])
 					//printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
 					write(1, read_server_from_child, MAX_MSG);
                     enum command_type command = get_command_type(read_server_from_child);
-                    printf("parsed command: %d\n", command);
+                    printf("parsed user command: %d\n", command);
                     if(command == P2P){
-                        printf("p2p\n");
+                        printf("p2p user command read correctly\n");
                     }
                     else if(command == LIST){
-                        printf("list\n");
+                        printf("list user command read correctly\n");
                     }
                     else if(command == EXIT){
-                        printf("exit\n");
+                        printf("exit user command read correctly\n");
                     }
                     else{
-                        printf("client broadcast\n");
+                        printf("client user broadcast read correctly\n");
                         //broadcast message
                     }
                     memset(read_server_from_child, '\0', MAX_MSG);
@@ -450,25 +450,30 @@ int main(int argc, char * argv[])
         // Poll stdin (input from the terminal) and handle admnistrative command
         //handle commands like list, broadcast
         char server_from_stdin[MAX_MSG];
+        
         memset(server_from_stdin, '\0', MAX_MSG);
+        
         int bytesRead = read(0, server_from_stdin, MAX_MSG);
+        
         if(bytesRead > 0){
             enum command_type command = get_command_type(server_from_stdin);
+            printf("parsed server command: %d\n", command);
             if(command==LIST){
-                printf("list");
+                printf("list server command read correctly\n");
             }
             else if(command == KICK){
-                printf("kick");
+                printf("kick server command read correctly\n");
             }
             else if(command == EXIT){
-                printf("exit");
+                printf("exit server command read correctly\n");
             }
             else{
-                printf("server broadcast");
+                printf("server broadcast server command read correctly\n");
                 //broadcast
             }
+            memset(server_from_stdin, '\0', MAX_MSG);
         }
-        memset(server_from_stdin, '\0', MAX_MSG);
+        
             
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 	}
