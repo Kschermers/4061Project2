@@ -328,7 +328,7 @@ int main(int argc, char * argv[])
 					  pipe_child_to_client,
 					  pipe_child_from_client)==0){
             
-            //printf("DEBUG: get connection success\n\n");
+            printf("DEBUG: get connection success\n\n");
             int pipe_server_from_child[2];
             int pipe_server_to_child[2];
             
@@ -359,15 +359,15 @@ int main(int argc, char * argv[])
                
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
-				//printf("DEBUG: About to enter child-process loop\n\n");
+				printf("DEBUG: About to enter child-process loop\n\n");
                 while(1){
 					// POLLING USER:
 			       	// read from client
-					// printf("DEBUG: Attempting read - Child from Client\n\n");
+					printf("DEBUG: Attempting read - Child from Client\n\n");
                 	int bytesRead = read(pipe_child_from_client[0], read_child_from_client, MAX_MSG);
         
                     if(bytesRead>0){
-						//printf("DEBUG: Message read from client to child!\n\n");
+						printf("DEBUG: Message read from client to child!\n\n");
                         // if something was read, send it to server
 						printf("Message recieved: %s\n\n", read_child_from_client);
 						
@@ -389,7 +389,7 @@ int main(int argc, char * argv[])
                 
             }else{
                 // Server process: Add a new user information into an empty slot
-                //printf("DEBUG: Adding user\n\n");
+                printf("DEBUG: Adding user\n\n");
                 add_user(slot, user_list, getpid(), user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
                 
                 int pipe_child_from_client[2];
@@ -404,17 +404,17 @@ int main(int argc, char * argv[])
 		// printf("DEBUG: polling children for messages...\n\n");
         for(i = 0; i < MAX_USER; i++){
         	if(user_list[i].m_status == SLOT_FULL){
-				// printf("DEBUG: User slot %d is full. Attempting read...\n\n", i);
+				printf("DEBUG: User slot %d is full. Attempting read...\n\n", i);
             	// poll child processes and handle user commands
 				int bytesRead2 = read(user_list[i].m_fd_to_server, read_server_from_child, MAX_MSG);
 				// printf("DEBUG: Read attempt complete.\n\n");
                 if(bytesRead2 > 0){
                 	// if something was read, write it to stdout
-					//printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
+					printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
 					write(1, read_server_from_child, MAX_MSG);
 					
                 }
-                // SAM: idk what this line is: read(user_list[i].m_fd_to_server, user_id, MAX_USER_ID);
+
                 //switch statement to handle commands use util function getcommandtype
             }
         }
