@@ -419,6 +419,7 @@ int main(int argc, char * argv[])
         	if(user_list[i].m_status == SLOT_FULL){
 				//printf("DEBUG: User slot %d is full. Attempting read...\n\n", i);
             	// poll child processes and handle user commands
+                memset(read_server_from_child, '\0', MAX_MSG);
 				int bytesRead2 = read(user_list[i].m_fd_to_server, read_server_from_child, MAX_MSG);
 				// printf("DEBUG: Read attempt complete.\n\n");
                 if(bytesRead2 > 0){
@@ -426,19 +427,21 @@ int main(int argc, char * argv[])
 					//printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
 					write(1, read_server_from_child, MAX_MSG);
                     enum command_type command = get_command_type(read_server_from_child);
+                    printf("parsed command: %d\n", command);
                     if(command == P2P){
-                        printf("p2p");
+                        printf("p2p\n");
                     }
                     else if(command == LIST){
-                        printf("list");
+                        printf("list\n");
                     }
                     else if(command == EXIT){
-                        printf("exit");
+                        printf("exit\n");
                     }
                     else{
-                        printf("client broadcast");
+                        printf("client broadcast\n");
                         //broadcast message
                     }
+                    memset(read_server_from_child, '\0', MAX_MSG);
                 }
                 
                 //switch statement to handle commands use util function getcommandtype
