@@ -425,7 +425,7 @@ int main(int argc, char * argv[])
                 	// if something was read, write it to stdout
 					//printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
 					write(1, read_server_from_child, MAX_MSG);
-                    command_type command = get_command_type(read_server_from_child);
+                    enum command_type command = get_command_type(read_server_from_child);
                     if(command == P2P){
                         printf("p2p");
                     }
@@ -450,7 +450,7 @@ int main(int argc, char * argv[])
         memset(server_from_stdin, '\0', MAX_MSG);
         int bytesRead = read(0, server_from_stdin, MAX_MSG);
         if(bytesRead > 0){
-            command_type command = get_command_type(server_from_stdin);
+            enum command_type command = get_command_type(server_from_stdin);
             if(command==LIST){
                 printf("list");
             }
