@@ -100,7 +100,7 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
         newUser.m_pid = pid;
         
         //how should this be declared???
-        newUser.m_user_id = user_id;
+        strcpy(newUser.m_user_id, user_id);
         newUser.m_fd_to_user = pipe_to_child;
         newUser.m_fd_to_server = pipe_to_parent;
         newUser.m_status = SLOT_FULL;
