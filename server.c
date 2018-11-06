@@ -402,9 +402,9 @@ int main(int argc, char * argv[])
                 
             }else{
                 // Server process: Add a new user information into an empty slot
-                printf("DEBUG: Adding user: %s\n\n", user_id);
-                add_user(slot, user_list, getpid(), user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
                 
+                int added_index = add_user(slot, user_list, getpid(), user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
+                printf("DEBUG: Adding user: %s at index: %d\n\n", user_id, added_index);
                 int pipe_child_from_client[2];
                 int pipe_child_to_client[2];
                 
