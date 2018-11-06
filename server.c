@@ -368,8 +368,8 @@ int main(int argc, char * argv[])
             if(pid == 0){
                 //printf("DEBUG: inside child process\n\n");
                 //close ends we don't need
-                close(pipe_child_to_client[1]);
-                close(pipe_child_from_client[0]);
+                close(pipe_child_to_client[0]);
+                close(pipe_child_from_client[1]);
                
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
