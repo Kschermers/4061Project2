@@ -460,12 +460,37 @@ int main(int argc, char * argv[])
             //printf("parsed server command: %d\n", command);
             if(command==LIST){
                 printf("list server command read correctly\n");
+                list_users(-1, user_list);
             }
             else if(command == KICK){
                 printf("kick server command read correctly\n");
+                char name_buf[MAX_MSG];
+                if(extract_name(server_from_stdin, name_buf) >= 0){
+                    int index = find_user_index(user_list, name_buf);
+                    if(index>=0){
+                        kick_user(index, user_list);
+                        memset(name_buf, '\0', MAX_MSG);
+                    }
+                }
             }
             else if(command == EXIT){
                 printf("exit server command read correctly\n");
+                int j;
+                for(j = 0; j<MAX_USER; j++){
+                    if(user_list[j].m_status == SLOT_FULL){
+                        char name_buf[MAX_MSG];
+                        if(extract_name(server_from_stdin, name_buf) >= 0){
+                            int index = find_user_index(user_list, name_buf);
+                            if(index>=0){
+                                printf("Kicking user: %s\n", name_buf);
+                                kick_user(index, user_list);
+                                memset(name_buf, '\0', MAX_MSG);
+                            }
+                        }
+                    }
+                }
+                printf("Exiting server process\n");
+                exit(0);
             }
             else{
                 printf("server broadcast server command read correctly\n");
