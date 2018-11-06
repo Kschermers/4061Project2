@@ -379,7 +379,7 @@ int main(int argc, char * argv[])
 			       	// read from client
 					//printf("DEBUG: Attempting read - Child from Client\n\n");
                 	int bytesRead = read(pipe_child_from_client[0], read_child_from_client, MAX_MSG);
-                    printf("Bytes read in child: %d\n", bytesRead);
+                
                     if(bytesRead>0){
 						//printf("DEBUG: Message read from client to child!\n\n");
                         // if something was read, send it to server
