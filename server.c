@@ -487,6 +487,9 @@ int main(int argc, char * argv[])
                                 memset(name_buf, '\0', MAX_MSG);
                             }
                         }
+                        else{
+                            printf("extract fail\n");
+                        }
                     }
                 }
                 printf("Exiting server process\n");
