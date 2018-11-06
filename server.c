@@ -471,6 +471,13 @@ int main(int argc, char * argv[])
                         kick_user(index, user_list);
                         memset(name_buf, '\0', MAX_MSG);
                     }
+                    else{
+                        printf("user's name wasn't found\n");
+                    }
+                }
+                else{
+                    printf("extract fail\n");
+                }
                 }
             }
             else if(command == EXIT){
@@ -485,6 +492,9 @@ int main(int argc, char * argv[])
                                 printf("Kicking user: %s\n", name_buf);
                                 kick_user(index, user_list);
                                 memset(name_buf, '\0', MAX_MSG);
+                            }
+                            else{
+                                printf("user's name wasn't found\n");
                             }
                         }
                         else{
