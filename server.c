@@ -379,14 +379,12 @@ int main(int argc, char * argv[])
 			       	// read from client
 					//printf("DEBUG: Attempting read - Child from Client\n\n");
                 	int bytesRead = read(pipe_child_from_client[0], read_child_from_client, MAX_MSG);
-                    
+                    printf("Bytes read in child: %d\n", bytesRead);
                     if(bytesRead>0){
 						//printf("DEBUG: Message read from client to child!\n\n");
                         // if something was read, send it to server
 						printf("Message recieved: %s\n\n", read_child_from_client);
                         write(pipe_server_from_child[1], read_child_from_client, MAX_MSG);
-							//printf("DEBUG: Write success!\n\n");
-						
                     }
                     
 					// memset buffer
