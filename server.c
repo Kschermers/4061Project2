@@ -98,6 +98,8 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
     if(idx >= 0){
         USER newUser = {};
         newUser.m_pid = pid;
+        
+        //how should this be declared???
         strcpy(newUser.m_user_id, user_id);
         newUser.m_fd_to_user = pipe_to_child;
         newUser.m_fd_to_server = pipe_to_parent;
@@ -133,8 +135,6 @@ void cleanup_user(int idx, USER * user_list)
 	// set the value of all fd back to -1
 	// set the status back to empty
     user_list[idx].m_pid = -1;
-    char user_id_buf[MAX_MSG];
-    strcpy(user_list[idx].m_user_id,user_id_buf);
     memset(user_list[idx].m_user_id, '\0', MAX_USER_ID);
     close(user_list[idx].m_fd_to_user);
     close(user_list[idx].m_fd_to_server);
