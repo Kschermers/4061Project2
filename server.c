@@ -472,7 +472,7 @@ int main(int argc, char * argv[])
                         memset(name_buf, '\0', MAX_MSG);
                     }
                     else{
-                        printf("couldn't find user name\n");
+                        printf("couldn't find user name: %s\n", name_buf);
                     }
                 }
                 else{
