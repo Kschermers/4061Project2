@@ -290,20 +290,6 @@ int main(int argc, char * argv[])
 	char buf[MAX_MSG]; 
 	fcntl(0, F_SETFL, fcntl(0, F_GETFL)| O_NONBLOCK);
 	print_prompt("admin");
-
-    
-    // arrays of pipes to handle a max of 10 children
-    
-    //-----Decleration of Pipes-----//
-    
-    //-----End of Decleratoion-----//
-    
-    
-    
-    //-----Creation of Pipes-----//
-    
-    //------End of Pipe Creation-----//
-    
     
 	/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 	// declarations before loop    
@@ -366,28 +352,20 @@ int main(int argc, char * argv[])
             
         	pid = fork();
             if(pid == 0){
-                //printf("DEBUG: inside child process\n\n");
-                //close ends we don't need
                 close(pipe_child_to_client[0]);
                 close(pipe_child_from_client[1]);
-               
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
 				printf("DEBUG: About to enter child-process loop\n\n");
                 while(1){
 					// POLLING USER:
-			       	// read from client
-					//printf("DEBUG: Attempting read - Child from Client\n\n");
                 	int bytesRead = read(pipe_child_from_client[0], read_child_from_client, MAX_MSG);
                 
                     if(bytesRead>0){
-						//printf("DEBUG: Message read from client to child!\n\n");
-                        // if something was read, send it to server
 						printf("Message recieved: %s\n\n", read_child_from_client);
                         write(pipe_server_from_child[1], read_child_from_client, MAX_MSG);
                     }
-                    
-					// memset buffer
+
                     memset(read_child_from_client, '\0', MAX_MSG);
 
 					// POLLING SERVER:
@@ -396,30 +374,20 @@ int main(int argc, char * argv[])
                 
             }else{
                 // Server process: Add a new user information into an empty slot
-                
                 int added_index = add_user(slot, user_list, getpid(), user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
                 printf("DEBUG: Adding user: %s at index: %d\n\n", user_id, added_index);
                 int pipe_child_from_client[2];
                 int pipe_child_to_client[2];
-                
-               
                 //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
             }
         }
-            
-        // happens even if there isn't a new child
-		// printf("DEBUG: polling children for messages...\n\n");
         for(i = 0; i < MAX_USER; i++){
         	if(user_list[i].m_status == SLOT_FULL){
-				//printf("DEBUG: User slot %d is full. Attempting read...\n\n", i);
             	// poll child processes and handle user commands
                 memset(read_server_from_child, '\0', MAX_MSG);
 				int bytesRead2 = read(user_list[i].m_fd_to_server, read_server_from_child, MAX_MSG);
-				// printf("DEBUG: Read attempt complete.\n\n");
                 if(bytesRead2 > 0){
-                	// if something was read, write it to stdout
-					//printf("DEBUG: Message read from child to server! Writing to stdout...\n\n");
-					write(1, read_server_from_child, MAX_MSG);
+                    printf("%s\n", read_server_from_child);
                     enum command_type command = get_command_type(read_server_from_child);
                     //printf("parsed user command: %d\n", command);
                     if(command == P2P){
@@ -437,18 +405,11 @@ int main(int argc, char * argv[])
                     }
                     memset(read_server_from_child, '\0', MAX_MSG);
                 }
-                
-                //switch statement to handle commands use util function getcommandtype
             }
         }
         // Poll stdin (input from the terminal) and handle admnistrative command
-        //handle commands like list, broadcast
         char server_from_stdin[MAX_MSG];
-        
-        memset(server_from_stdin, '\0', MAX_MSG);
-        
         int bytesRead = read(0, server_from_stdin, MAX_MSG);
-        
         if(bytesRead > 0){
             enum command_type command = get_command_type(server_from_stdin);
             //printf("parsed server command: %d\n", command);
