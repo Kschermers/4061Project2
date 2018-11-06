@@ -384,14 +384,9 @@ int main(int argc, char * argv[])
 						//printf("DEBUG: Message read from client to child!\n\n");
                         // if something was read, send it to server
 						printf("Message recieved: %s\n\n", read_child_from_client);
-						
-						if(write(pipe_server_from_child[1], read_child_from_client, MAX_MSG) != -1){
+                        write(pipe_server_from_child[1], read_child_from_client, MAX_MSG);
 							//printf("DEBUG: Write success!\n\n");
-						}else{
-                            printf("Exited on bad write\n\n");
-                            exit(-1);
-                            //printf("DEBUG: Write failure!\n\n");
-						}
+						
                     }
                     
 					// memset buffer
@@ -505,8 +500,6 @@ int main(int argc, char * argv[])
             }
             memset(server_from_stdin, '\0', MAX_MSG);
         }
-        
-            
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 	}
 }
