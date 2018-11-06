@@ -100,7 +100,7 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
         newUser.m_pid = pid;
         
         //how should this be declared???
-        newUser.m_user_id;
+        newUser.m_user_id = user_id;
         newUser.m_fd_to_user = pipe_to_child;
         newUser.m_fd_to_server = pipe_to_parent;
         newUser.m_status = SLOT_FULL;
@@ -402,7 +402,7 @@ int main(int argc, char * argv[])
                 
             }else{
                 // Server process: Add a new user information into an empty slot
-                printf("DEBUG: Adding user\n\n");
+                printf("DEBUG: Adding user: %s\n\n", user_id);
                 add_user(slot, user_list, getpid(), user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
                 
                 int pipe_child_from_client[2];
@@ -472,12 +472,11 @@ int main(int argc, char * argv[])
                         memset(name_buf, '\0', MAX_MSG);
                     }
                     else{
-                        printf("user's name wasn't found\n");
+                        printf("couldn't find user name\n");
                     }
                 }
                 else{
                     printf("extract fail\n");
-                }
                 }
             }
             else if(command == EXIT){
@@ -493,12 +492,6 @@ int main(int argc, char * argv[])
                                 kick_user(index, user_list);
                                 memset(name_buf, '\0', MAX_MSG);
                             }
-                            else{
-                                printf("user's name wasn't found\n");
-                            }
-                        }
-                        else{
-                            printf("extract fail\n");
                         }
                     }
                 }
