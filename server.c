@@ -101,7 +101,7 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
         
         //how should this be declared???
         strcpy(newUser.m_user_id, user_id);
-        printf("new added user id is: %s\n", newUser.m_user_id);
+        //printf("new added user id is: %s\n", newUser.m_user_id);
         newUser.m_fd_to_user = pipe_to_child;
         newUser.m_fd_to_server = pipe_to_parent;
         newUser.m_status = SLOT_FULL;
@@ -356,13 +356,13 @@ int main(int argc, char * argv[])
                 close(pipe_child_from_client[1]);
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
-				printf("DEBUG: About to enter child-process loop\n\n");
+				//printf("DEBUG: About to enter child-process loop\n\n");
                 while(1){
 					// POLLING USER:
                 	int bytesRead = read(pipe_child_from_client[0], read_child_from_client, MAX_MSG);
                 
                     if(bytesRead>0){
-						printf("Message recieved: %s\n\n", read_child_from_client);
+                        //printf("%s:%s\n",user_list[slot].m_user_id, read_child_from_client);
                         write(pipe_server_from_child[1], read_child_from_client, MAX_MSG);
                     }
 
@@ -370,12 +370,13 @@ int main(int argc, char * argv[])
 
 					// POLLING SERVER:
 					// <<<<<<<NEEEDS TO BE DONE STILL>>>>>>>>
+                    // for p2p messages
                 }
                 
             }else{
                 // Server process: Add a new user information into an empty slot
-                int added_index = add_user(slot, user_list, getpid(), user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
-                printf("DEBUG: Adding user: %s at index: %d\n\n", user_id, added_index);
+                int added_index = add_user(slot, user_list, pid, user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
+                printf("\nNew User Added: %s\n\n", user_id);
                 int pipe_child_from_client[2];
                 int pipe_child_to_client[2];
                 //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
@@ -387,8 +388,18 @@ int main(int argc, char * argv[])
                 memset(read_server_from_child, '\0', MAX_MSG);
 				int bytesRead2 = read(user_list[i].m_fd_to_server, read_server_from_child, MAX_MSG);
                 if(bytesRead2 > 0){
-                    printf("%s\n", read_server_from_child);
+                    
+                    for(int k = 0; k < MAX_MSG; k++)
+                    {
+                        if(read_server_from_child[k]=='\n')
+                        {
+                            read_server_from_child[k]='\0';
+                            break;
+                        }
+                    }
+                    printf("%s: %s\n",user_list[i].m_user_id, read_server_from_child);
                     enum command_type command = get_command_type(read_server_from_child);
+                    
                     //printf("parsed user command: %d\n", command);
                     if(command == P2P){
                         printf("p2p user command read correctly\n");
@@ -400,7 +411,7 @@ int main(int argc, char * argv[])
                         printf("exit user command read correctly\n");
                     }
                     else{
-                        printf("client user broadcast read correctly\n");
+                        //printf("client user broadcast read correctly\n");
                         //broadcast message
                     }
                     memset(read_server_from_child, '\0', MAX_MSG);
@@ -410,28 +421,44 @@ int main(int argc, char * argv[])
         // Poll stdin (input from the terminal) and handle admnistrative command
         char server_from_stdin[MAX_MSG];
         int bytesRead = read(0, server_from_stdin, MAX_MSG);
+        
+        for(int k = 0; k < MAX_MSG; k++)
+        {
+            if(server_from_stdin[k]=='\n')
+            {
+                server_from_stdin[k]='\0';
+                break;
+            }
+        }
+        
         if(bytesRead > 0){
             enum command_type command = get_command_type(server_from_stdin);
             //printf("parsed server command: %d\n", command);
             if(command==LIST){
-                printf("list server command read correctly\n");
+                //printf("list server command read correctly\n");
                 list_users(-1, user_list);
             }
             else if(command == KICK){
-                printf("kick server command read correctly\n");
+                //printf("kick server command read correctly\n");
                 char name_buf[MAX_MSG];
                 if(extract_name(server_from_stdin, name_buf) >= 0){
+                    /*for(int k = 0; k < MAX_MSG; k++)
+                    {
+                        if(name_buf[k]=='\n')
+                        {
+                            name_buf[k]='\0';
+                            break;
+                        }
+                    }*/
                     int index = find_user_index(user_list, name_buf);
                     if(index>=0){
                         kick_user(index, user_list);
+                        printf("user '%s' has been kicked\n",name_buf);
                         memset(name_buf, '\0', MAX_MSG);
                     }
                     else{
-                        printf("couldn't find user name: %s\n", name_buf);
+                        printf("couldn't find user name: %s", name_buf);
                     }
-                }
-                else{
-                    printf("extract fail\n");
                 }
             }
             else if(command == EXIT){
@@ -454,7 +481,7 @@ int main(int argc, char * argv[])
                 exit(0);
             }
             else{
-                printf("server broadcast server command read correctly\n");
+                //printf("server broadcast server command read correctly\n");
                 //broadcast
             }
             memset(server_from_stdin, '\0', MAX_MSG);
