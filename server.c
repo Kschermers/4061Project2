@@ -98,14 +98,14 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
     if(idx >= 0){
         USER newUser = {};
         newUser.m_pid = pid;
-        
+
         //how should this be declared???
         strcpy(newUser.m_user_id, user_id);
         //printf("new added user id is: %s\n", newUser.m_user_id);
         newUser.m_fd_to_user = pipe_to_child;
         newUser.m_fd_to_server = pipe_to_parent;
         newUser.m_status = SLOT_FULL;
-        
+
         user_list[idx] = newUser;
         return idx;
     }
@@ -246,7 +246,7 @@ void send_p2p_msg(int idx, USER * user_list, char *buf)
 {
 	// get the target user by name using extract_name() function
 	// find the user id using find_user_index()
-	// if user not found, write back to the original user "User not found", using the write()function on pipes. 
+	// if user not found, write back to the original user "User not found", using the write()function on pipes.
 	// if the user is found then write the message that the user wants to send to that user.
 }
 
@@ -287,69 +287,69 @@ int main(int argc, char * argv[])
 	USER user_list[MAX_USER];
 	init_user_list(user_list);   // Initialize user list
 
-	char buf[MAX_MSG]; 
+	char buf[MAX_MSG];
 	fcntl(0, F_SETFL, fcntl(0, F_GETFL)| O_NONBLOCK);
 	print_prompt("admin");
-    
+
 	/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
-	// declarations before loop    
+	// declarations before loop
 	int slot;
 	int pid;
-    
-   
+
+
     int pipe_child_from_client[2];
     int pipe_child_to_client[2];
-    
+
     int flags, i;
-    
+
     while(1) {
-      
-        
+
+
 		slot = find_empty_slot(user_list);
-        
+
         char read_child_from_client[MAX_MSG];
         char read_server_from_child[MAX_MSG];
 		char user_id[MAX_USER_ID];
 
-        if(slot>=0 && get_connection(user_id, 
+        if(slot>=0 && get_connection(user_id,
 					  pipe_child_to_client,
 					  pipe_child_from_client)==0){
-            
+
             //printf("DEBUG: get connection success\n\n");
             int pipe_server_from_child[2];
             int pipe_server_to_child[2];
-            
+
             pipe(pipe_server_from_child);
             pipe(pipe_server_to_child);
-            
+
             flags = fcntl(pipe_server_from_child[1], F_GETFL, 0);
             fcntl(pipe_server_from_child[1], F_SETFL, flags | O_NONBLOCK);
-            
+
             flags = fcntl(pipe_server_to_child[0], F_GETFL, 0);
             fcntl(pipe_server_to_child[0], F_SETFL, flags | O_NONBLOCK);
-            
+
             flags = fcntl(pipe_server_from_child[0], F_GETFL, 0);
             fcntl(pipe_server_from_child[0], F_SETFL, flags | O_NONBLOCK);
-            
+
             flags = fcntl(pipe_server_to_child[1], F_GETFL, 0);
             fcntl(pipe_server_to_child[1], F_SETFL, flags | O_NONBLOCK);
-            
+
             close(pipe_server_to_child[1]);
             close(pipe_server_from_child[0]);
-            
+
             flags = fcntl(pipe_child_to_client[0], F_GETFL, 0);
             fcntl(pipe_child_to_client[0], F_SETFL, flags | O_NONBLOCK);
-            
+
             flags = fcntl(pipe_child_from_client[1], F_GETFL, 0);
             fcntl(pipe_child_from_client[1], F_SETFL, flags | O_NONBLOCK);
-            
+
             flags = fcntl(pipe_child_to_client[1], F_GETFL, 0);
             fcntl(pipe_child_to_client[1], F_SETFL, flags | O_NONBLOCK);
-            
+
             flags = fcntl(pipe_child_from_client[0], F_GETFL, 0);
             fcntl(pipe_child_from_client[0], F_SETFL, flags | O_NONBLOCK);
 
-            
+
         	pid = fork();
             if(pid == 0){
                 close(pipe_child_to_client[0]);
@@ -358,27 +358,29 @@ int main(int argc, char * argv[])
                 //when read = 0 send message to server, pipe is broken
 				//printf("DEBUG: About to enter child-process loop\n\n");
                 while(1){
-					// POLLING USER:
+					        // POLLING USER:
                 	int bytesRead = read(pipe_child_from_client[0], read_child_from_client, MAX_MSG);
-                
+
                     if(bytesRead>0){
+                        printf("Message received in child\n");
                         //printf("%s:%s\n",user_list[slot].m_user_id, read_child_from_client);
                         write(pipe_server_from_child[1], read_child_from_client, MAX_MSG);
+                          memset(read_child_from_client, '\0', MAX_MSG);
                     }
 
-                    memset(read_child_from_client, '\0', MAX_MSG);
+
 
 					// POLLING SERVER:
 					// <<<<<<<NEEEDS TO BE DONE STILL>>>>>>>>
                     // for p2p messages
                 }
-                
+
             }else{
                 // Server process: Add a new user information into an empty slot
                 int added_index = add_user(slot, user_list, pid, user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
                 printf("\nNew User Added: %s\n\n", user_id);
-                int pipe_child_from_client[2];
-                int pipe_child_to_client[2];
+                // int pipe_child_from_client[2];
+                // int pipe_child_to_client[2];
                 //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
             }
         }
@@ -386,9 +388,9 @@ int main(int argc, char * argv[])
         	if(user_list[i].m_status == SLOT_FULL){
             	// poll child processes and handle user commands
                 memset(read_server_from_child, '\0', MAX_MSG);
-				int bytesRead2 = read(user_list[i].m_fd_to_server, read_server_from_child, MAX_MSG);
+				           int bytesRead2 = read(user_list[i].m_fd_to_server, read_server_from_child, MAX_MSG);
                 if(bytesRead2 > 0){
-                    
+
                     for(int k = 0; k < MAX_MSG; k++)
                     {
                         if(read_server_from_child[k]=='\n')
@@ -399,7 +401,7 @@ int main(int argc, char * argv[])
                     }
                     printf("%s: %s\n",user_list[i].m_user_id, read_server_from_child);
                     enum command_type command = get_command_type(read_server_from_child);
-                    
+
                     //printf("parsed user command: %d\n", command);
                     if(command == P2P){
                         printf("p2p user command read correctly\n");
@@ -421,17 +423,16 @@ int main(int argc, char * argv[])
         // Poll stdin (input from the terminal) and handle admnistrative command
         char server_from_stdin[MAX_MSG];
         int bytesRead = read(0, server_from_stdin, MAX_MSG);
-        
-        for(int k = 0; k < MAX_MSG; k++)
-        {
-            if(server_from_stdin[k]=='\n')
-            {
-                server_from_stdin[k]='\0';
-                break;
-            }
-        }
-        
+
         if(bytesRead > 0){
+          for(int k = 0; k < MAX_MSG; k++)
+          {
+              if(server_from_stdin[k]=='\n')
+              {
+                  server_from_stdin[k]='\0';
+                  break;
+              }
+          }
             enum command_type command = get_command_type(server_from_stdin);
             //printf("parsed server command: %d\n", command);
             if(command==LIST){
@@ -442,14 +443,6 @@ int main(int argc, char * argv[])
                 //printf("kick server command read correctly\n");
                 char name_buf[MAX_MSG];
                 if(extract_name(server_from_stdin, name_buf) >= 0){
-                    /*for(int k = 0; k < MAX_MSG; k++)
-                    {
-                        if(name_buf[k]=='\n')
-                        {
-                            name_buf[k]='\0';
-                            break;
-                        }
-                    }*/
                     int index = find_user_index(user_list, name_buf);
                     if(index>=0){
                         kick_user(index, user_list);

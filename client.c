@@ -28,8 +28,8 @@
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include "comm.h"
-int signalled = 0;
-void handle_signals(int sig_num){signalled = 1;}
+//int signalled = 0;
+//void handle_signals(int sig_num){signalled = 1;}
 /* -------------------------Main function for the client ----------------------*/
 void main(int argc, char * argv[]) {
 	int pipe_from_child[2], pipe_to_child[2];
@@ -44,14 +44,14 @@ void main(int argc, char * argv[]) {
 
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
 	// signal handling
-    struct sigaction my_sa = {};
-    my_sa.sa_handler = handle_signals;
-    sigaction(SIGTERM, &my_sa, NULL);
-    sigaction(SIGINT,  &my_sa, NULL);
-    
+    // struct sigaction my_sa = {};
+    // my_sa.sa_handler = handle_signals;
+    // sigaction(SIGTERM, &my_sa, NULL);
+    // sigaction(SIGINT,  &my_sa, NULL);
+
 	// set up buffers
 	char buf_send[MAX_MSG];
-	char buf_recieve[MAX_MSG];	
+	char buf_recieve[MAX_MSG];
 
 	close(pipe_from_child[1]);
 	close(pipe_to_child[0]);
@@ -60,30 +60,27 @@ void main(int argc, char * argv[]) {
 	fcntl(pipe_from_child[0], F_SETFL, flags | O_NONBLOCK);
 
 
-	while(!signalled){
+	while(1){
 		// poll pipe retrieved and print it to stdout
-        memset(buf_recieve, '\0', MAX_MSG);
-		int bytesRead = read(pipe_from_child[0], buf_recieve, MAX_MSG);
+  //      memset(buf_recieve, '\0', MAX_MSG);
+				int bytesRead = read(pipe_from_child[0], buf_recieve, MAX_MSG);
         if(bytesRead > 0){
             printf("%s\n", buf_recieve);
+						memset(buf_recieve, '\0', MAX_MSG);
         }
-		memset(buf_recieve, '\0', MAX_MSG);
+
 
 		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
-        memset(buf_send, '\0', MAX_MSG);
+      //  memset(buf_send, '\0', MAX_MSG);
 		int bytesRead2 = read(0, buf_send, MAX_MSG);
         if(bytesRead2 > 0){
-            if(write(pipe_to_child[1], buf_send, MAX_MSG) != -1){
-				//printf("DEBUG: Write from client to server succeeded!\n\n");
-			}else{
-				//printf("DEBUG: Write from client to server failed\n\n");
-			}
+            write(pipe_to_child[1], buf_send, MAX_MSG);
+						memset(buf_send, '\0', MAX_MSG);
+					}
         }
-		memset(buf_send, '\0', MAX_MSG);
-	}	
+
+	}
 	/* -------------- YOUR CODE ENDS HERE -----------------------------------*/
-}
+
 
 /*--------------------------End of main for the client --------------------------*/
-
-
