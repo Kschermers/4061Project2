@@ -423,6 +423,7 @@ int main(int argc, char * argv[])
                     }
                     else if(command == LIST){
                         printf("list user command read correctly\n");
+                        list_users(i, user_list);
                     }
                     else if(command == EXIT){
                         printf("exit user command read correctly\n");
