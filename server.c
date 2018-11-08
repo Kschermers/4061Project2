@@ -293,8 +293,7 @@ int main(int argc, char * argv[])
 
 	/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
 	// declarations before loop
-	int slot;
-	int pid;
+
 
 
     int pipe_child_from_client[2];
@@ -305,12 +304,14 @@ int main(int argc, char * argv[])
     while(1) {
 
 
-		slot = find_empty_slot(user_list);
+		    int slot = find_empty_slot(user_list);
 
         char read_child_from_client[MAX_MSG];
         char read_server_from_child[MAX_MSG];
-		char user_id[MAX_USER_ID];
 
+
+		    char user_id[MAX_USER_ID];
+        	int pid;
         if(slot>=0 && get_connection(user_id,
 					  pipe_child_to_client,
 					  pipe_child_from_client)==0){
@@ -318,7 +319,6 @@ int main(int argc, char * argv[])
             //printf("DEBUG: get connection success\n\n");
             int pipe_server_from_child[2];
             int pipe_server_to_child[2];
-
             pipe(pipe_server_from_child);
             pipe(pipe_server_to_child);
 
@@ -334,8 +334,9 @@ int main(int argc, char * argv[])
             flags = fcntl(pipe_server_to_child[1], F_GETFL, 0);
             fcntl(pipe_server_to_child[1], F_SETFL, flags | O_NONBLOCK);
 
-            close(pipe_server_to_child[1]);
-            close(pipe_server_from_child[0]);
+            //TODO
+            // close(pipe_server_to_child[1]);
+            // close(pipe_server_from_child[0]);
 
             flags = fcntl(pipe_child_to_client[0], F_GETFL, 0);
             fcntl(pipe_child_to_client[0], F_SETFL, flags | O_NONBLOCK);
@@ -365,7 +366,7 @@ int main(int argc, char * argv[])
                         printf("Message received in child\n");
                         //printf("%s:%s\n",user_list[slot].m_user_id, read_child_from_client);
                         write(pipe_server_from_child[1], read_child_from_client, MAX_MSG);
-                          memset(read_child_from_client, '\0', MAX_MSG);
+                        memset(read_child_from_client, '\0', MAX_MSG);
                     }
 
 
@@ -377,10 +378,10 @@ int main(int argc, char * argv[])
 
             }else{
                 // Server process: Add a new user information into an empty slot
-                int added_index = add_user(slot, user_list, pid, user_id, pipe_child_to_client[1], pipe_child_from_client[0]);
+                int added_index = add_user(slot, user_list, pid, user_id, pipe_server_to_child[1], pipe_server_from_child[0]);
                 printf("\nNew User Added: %s\n\n", user_id);
-                // int pipe_child_from_client[2];
-                // int pipe_child_to_client[2];
+                int pipe_child_from_client[2];
+                int pipe_child_to_client[2];
                 //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
             }
         }
