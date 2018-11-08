@@ -26,10 +26,14 @@
 #include <unistd.h>
 #include <sys/un.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include "comm.h"
 //int signalled = 0;
-//void handle_signals(int sig_num){signalled = 1;}
+//void handle_signals(int sig_num){
+//    printf("received signal\n");
+//    signalled = 1;
+//}
 /* -------------------------Main function for the client ----------------------*/
 void main(int argc, char * argv[]) {
 	int pipe_from_child[2], pipe_to_child[2];
@@ -44,10 +48,10 @@ void main(int argc, char * argv[]) {
 
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
 	// signal handling
-    // struct sigaction my_sa = {};
-    // my_sa.sa_handler = handle_signals;
-    // sigaction(SIGTERM, &my_sa, NULL);
-    // sigaction(SIGINT,  &my_sa, NULL);
+//     struct sigaction my_sa = {};
+//     my_sa.sa_handler = handle_signals;
+//     sigaction(SIGTERM, &my_sa, NULL);
+//     sigaction(SIGINT,  &my_sa, NULL);
 
 	// set up buffers
 	char buf_send[MAX_MSG];
@@ -57,45 +61,29 @@ void main(int argc, char * argv[]) {
 	flags = fcntl(pipe_from_child[0], F_GETFL, 0);
 	fcntl(pipe_from_child[0], F_SETFL, flags | O_NONBLOCK);
 
-	flags = fcntl(pipe_from_child[1], F_GETFL, 0);
-	fcntl(pipe_from_child[1], F_SETFL, flags | O_NONBLOCK);
-
-	flags = fcntl(pipe_from_child[0], F_GETFL, 0);
-	fcntl(pipe_from_child[0], F_SETFL, flags | O_NONBLOCK);
-
-	flags = fcntl(pipe_from_child[1], F_GETFL, 0);
-	fcntl(pipe_from_child[1], F_SETFL, flags | O_NONBLOCK);
-
+    flags = fcntl(pipe_to_child[1], F_GETFL, 0);
+    fcntl(pipe_to_child[1], F_SETFL, flags | O_NONBLOCK);
+    
 	close(pipe_from_child[1]);
 	close(pipe_to_child[0]);
 
-
-
-
-	while(1){
-		// poll pipe retrieved and print it to stdout
-  //      memset(buf_recieve, '\0', MAX_MSG);
-	//	printf("loop\n");
-				int bytesRead = read(pipe_from_child[0], buf_recieve, MAX_MSG);
+    while(1){
+        // poll pipe retrieved and print it to stdout
+        int bytesRead = read(pipe_from_child[0], buf_recieve, MAX_MSG);
         if(bytesRead > 0){
-
-            printf("%s\n", buf_recieve);
-						memset(buf_recieve, '\0', MAX_MSG);
+                printf("%s\n", buf_recieve);
+                memset(buf_recieve, '\0', MAX_MSG);
         }
-
-
-		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
-      //  memset(buf_send, '\0', MAX_MSG);
-		int bytesRead2 = read(0, buf_send, MAX_MSG);
-	//	printf("i'm non blocking\n");
+        // Poll stdin (input from the terminal) and send it to server (child process)via pipe
+        int bytesRead2 = read(0, buf_send, MAX_MSG);
         if(bytesRead2 > 0){
             write(pipe_to_child[1], buf_send, MAX_MSG);
-						memset(buf_send, '\0', MAX_MSG);
-					}
+            memset(buf_send, '\0', MAX_MSG);
         }
-
-	}
+        usleep(100);
+    }
+    exit(0);
+}
 	/* -------------- YOUR CODE ENDS HERE -----------------------------------*/
-
 
 /*--------------------------End of main for the client --------------------------*/

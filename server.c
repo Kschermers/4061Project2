@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <signal.h>
+
 #include "comm.h"
 #include "util.h"
 
@@ -98,14 +100,10 @@ int add_user(int idx, USER * user_list, int pid, char * user_id, int pipe_to_chi
     if(idx >= 0){
         USER newUser = {};
         newUser.m_pid = pid;
-
-        //how should this be declared???
         strcpy(newUser.m_user_id, user_id);
-        //printf("new added user id is: %s\n", newUser.m_user_id);
         newUser.m_fd_to_user = pipe_to_child;
         newUser.m_fd_to_server = pipe_to_parent;
         newUser.m_status = SLOT_FULL;
-
         user_list[idx] = newUser;
         return idx;
     }
@@ -121,8 +119,7 @@ void kill_user(int idx, USER * user_list) {
 	// kill a user (specified by idx) by using the systemcall kill()
 	// then call waitpid on the user
     kill(user_list[idx].m_pid, SIGKILL);
-    int status;
-    waitpid(user_list[idx].m_pid, &status,0);
+    waitpid(user_list[idx].m_pid, NULL,0);
 }
 
 /*
@@ -325,15 +322,15 @@ int main(int argc, char * argv[])
     int pipe_child_from_client[2];
     int pipe_child_to_client[2];
 
-    int flags, i;
+    int flags, i, pid;
 
     while(1) {
-		    int slot = find_empty_slot(user_list);
+        int slot = find_empty_slot(user_list);
         char buf[MAX_MSG];
-		    char user_id[MAX_USER_ID];
-        	int pid;
-          int pipe_child_from_client[2];
-          int pipe_child_to_client[2];
+        char user_id[MAX_USER_ID];
+    
+        int pipe_child_from_client[2];
+        int pipe_child_to_client[2];
         if(slot>=0 && get_connection(user_id,
 					  pipe_child_to_client,
 					  pipe_child_from_client)==0){
@@ -372,39 +369,38 @@ int main(int argc, char * argv[])
             flags = fcntl(pipe_child_from_client[0], F_GETFL, 0);
             fcntl(pipe_child_from_client[0], F_SETFL, flags | O_NONBLOCK);
 
-
+            
         	pid = fork();
             if(pid == 0){
                 close(pipe_child_to_client[0]);
                 close(pipe_child_from_client[1]);
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
-				//printf("DEBUG: About to enter child-process loop\n\n");
                 while(1){
-					        // POLLING USER:
+                    // POLLING USER:
                 	int bytesRead = read(pipe_child_from_client[0], buf, MAX_MSG);
                     if(bytesRead>0){
                         write(pipe_server_from_child[1], buf, MAX_MSG);
                         memset(buf, '\0', MAX_MSG);
                     }
+                    //POLLING SERVER:
                     int bytesRead2 = read(pipe_server_to_child[0], buf, MAX_MSG);
                     if(bytesRead2 > 0){
                       write(pipe_child_to_client[1], buf, MAX_MSG);
                       memset(buf, '\0', MAX_MSG);
                     }
+                    usleep(100);
                 }
-
             }else{
                 // Server process: Add a new user information into an empty slot
-                int added_index = add_user(slot, user_list, pid, user_id, pipe_server_to_child[1], pipe_server_from_child[0]);
-                //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
+                add_user(slot, user_list, pid-1, user_id, pipe_server_to_child[1], pipe_server_from_child[0]);
             }
         }
         int k;
         for(i = 0; i < MAX_USER; i++){
         	if(user_list[i].m_status == SLOT_FULL){
             	// poll child processes and handle user commands
-				        int bytesRead2 = read(user_list[i].m_fd_to_server, buf, MAX_MSG);
+                int bytesRead2 = read(user_list[i].m_fd_to_server, buf, MAX_MSG);
                 if(bytesRead2 > 0){
                     for(k = 0; k < MAX_MSG; k++)
                     {
@@ -422,15 +418,13 @@ int main(int argc, char * argv[])
                       send_p2p_msg(i, user_list, buf);
                     }
                     else if(command == LIST){
-                        printf("list user command read correctly\n");
                         list_users(i, user_list);
                     }
                     else if(command == EXIT){
-                        printf("exit user command read correctly\n");
+                        kick_user(i, user_list);
                     }
                     else{
-                          broadcast_msg(user_list, buf, user_list[i].m_user_id);
-
+                        broadcast_msg(user_list, buf, user_list[i].m_user_id);
                     }
                     memset(buf, '\0', MAX_MSG);
                 }
@@ -472,7 +466,6 @@ int main(int argc, char * argv[])
                 memset(buf, '\0', MAX_MSG);
             }
             else if(command == EXIT){
-                printf("exit server command read correctly\n");
                 int j;
                 for(j = 0; j<MAX_USER; j++){
                     if(user_list[j].m_status == SLOT_FULL){
@@ -488,16 +481,14 @@ int main(int argc, char * argv[])
                     }
                 }
                 memset(buf, '\0', MAX_MSG);
-                printf("Exiting server process\n");
                 exit(0);
             }
             else{
                 broadcast_msg(user_list, buf, "admin");
             }
-
-        }
+        }       
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
+         usleep(100);
 	}
 }
-
 /* --------------------End of the main function ----------------------------------------*/
