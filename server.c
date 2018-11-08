@@ -410,7 +410,8 @@ int main(int argc, char * argv[])
                             break;
                         }
                     }
-                    printf("%s: %s\n",user_list[i].m_user_id, buf);
+                    printf("\n%s: %s\n",user_list[i].m_user_id, buf);
+                    print_prompt("admin");
                     enum command_type command = get_command_type(buf);
 
                     //printf("parsed user command: %d\n", command);
@@ -441,12 +442,14 @@ int main(int argc, char * argv[])
                   buf[k]='\0';
                   break;
               }
+              print_prompt("admin");
           }
             enum command_type command = get_command_type(buf);
             //printf("parsed server command: %d\n", command);
             if(command==LIST){
                 //printf("list server command read correctly\n");
                 list_users(-1, user_list);
+                print_prompt("admin");
                 memset(buf, '\0', MAX_MSG);
             }
             else if(command == KICK){
@@ -456,11 +459,13 @@ int main(int argc, char * argv[])
                     int index = find_user_index(user_list, name_buf);
                     if(index>=0){
                         kick_user(index, user_list);
-                        printf("user '%s' has been kicked\n",name_buf);
+                        printf("\nuser '%s' has been kicked\n",name_buf);
+                        print_prompt("admin");
                         memset(name_buf, '\0', MAX_MSG);
                     }
                     else{
-                        printf("couldn't find user name: %s", name_buf);
+                        printf("\ncouldn't find user name: %s\n", name_buf);
+                        print_prompt("admin");
                     }
                 }
                 memset(buf, '\0', MAX_MSG);
@@ -473,7 +478,7 @@ int main(int argc, char * argv[])
                         if(extract_name(buf, name_buf) >= 0){
                             int index = find_user_index(user_list, name_buf);
                             if(index>=0){
-                                printf("Kicking user: %s\n", name_buf);
+                                printf("\nKicking user: %s\n", name_buf);
                                 kick_user(index, user_list);
                                 memset(name_buf, '\0', MAX_MSG);
                             }
@@ -484,7 +489,7 @@ int main(int argc, char * argv[])
                 exit(0);
             }
             else{
-                broadcast_msg(user_list, buf, "admin");
+                broadcast_msg(user_list, buf, "\nadmin");
             }
         }       
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/

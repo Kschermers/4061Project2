@@ -73,12 +73,14 @@ void main(int argc, char * argv[]) {
         // poll pipe retrieved and print it to stdout
         int bytesRead = read(pipe_from_child[0], buf_recieve, MAX_MSG);
         if(bytesRead > 0){
-                printf("%s\n", buf_recieve);
+                printf("\n%s\n", buf_recieve);
+                print_prompt(argv[1]);
                 memset(buf_recieve, '\0', MAX_MSG);
         }
         // Poll stdin (input from the terminal) and send it to server (child process)via pipe
         int bytesRead2 = read(0, buf_send, MAX_MSG);
         if(bytesRead2 > 0){
+            print_prompt(argv[1]);
             write(pipe_to_child[1], buf_send, MAX_MSG);
             memset(buf_send, '\0', MAX_MSG);
         }
