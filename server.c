@@ -163,12 +163,15 @@ int broadcast_msg(USER * user_list, char *buf, char *sender)
 	//then send the message to that user
 	//return zero on success
   int i;
+  char msg[MAX_MSG];
   for(i = 0; i < MAX_USER; i++){
     if(user_list[i].m_status==SLOT_FULL){
       if(strcmp(user_list[i].m_user_id, sender) != 0){
-        if(write(user_list[i].m_fd_to_user, buf, MAX_MSG) == -1){
+        sprintf(msg, "%s: %s", sender, buf);
+        if(write(user_list[i].m_fd_to_user, msg, MAX_MSG) == -1){
           return -1;
         }
+        memset(msg, '\0', MAX_MSG);
       }
     }
   }
@@ -258,6 +261,19 @@ void send_p2p_msg(int idx, USER * user_list, char *buf)
 	// find the user id using find_user_index()
 	// if user not found, write back to the original user "User not found", using the write()function on pipes.
 	// if the user is found then write the message that the user wants to send to that user.
+    char msg[MAX_MSG];
+    char name[MAX_MSG];
+    char txt[MAX_MSG];
+      if(extract_name(buf, name)!=-1 && extract_text(buf, txt)!=-1){
+          int targetIdx = find_user_index(user_list,name);
+          if(targetIdx>=0){
+            sprintf(msg, "%s: %s", user_list[idx].m_user_id, txt);
+            write(user_list[targetIdx].m_fd_to_user, msg, MAX_MSG);
+          }
+          else{
+            write(user_list[idx].m_fd_to_user, "User not found", 15);
+          }
+      }
 }
 
 //takes in the filename of the file being executed, and prints an error message stating the commands and their usage
@@ -312,15 +328,12 @@ int main(int argc, char * argv[])
     int flags, i;
 
     while(1) {
-
-
 		    int slot = find_empty_slot(user_list);
-
         char buf[MAX_MSG];
-
-
 		    char user_id[MAX_USER_ID];
         	int pid;
+          int pipe_child_from_client[2];
+          int pipe_child_to_client[2];
         if(slot>=0 && get_connection(user_id,
 					  pipe_child_to_client,
 					  pipe_child_from_client)==0){
@@ -370,32 +383,20 @@ int main(int argc, char * argv[])
                 while(1){
 					        // POLLING USER:
                 	int bytesRead = read(pipe_child_from_client[0], buf, MAX_MSG);
-
                     if(bytesRead>0){
-                        //printf("Message received in child\n");
-                        //printf("%s:%s\n",user_list[slot].m_user_id, read_child_from_client);
                         write(pipe_server_from_child[1], buf, MAX_MSG);
                         memset(buf, '\0', MAX_MSG);
                     }
-
                     int bytesRead2 = read(pipe_server_to_child[0], buf, MAX_MSG);
                     if(bytesRead2 > 0){
-                      printf("Child: Msg recieved from server");
                       write(pipe_child_to_client[1], buf, MAX_MSG);
                       memset(buf, '\0', MAX_MSG);
                     }
-
-					// POLLING SERVER:
-					// <<<<<<<NEEEDS TO BE DONE STILL>>>>>>>>
-                    // for p2p messages
                 }
 
             }else{
                 // Server process: Add a new user information into an empty slot
                 int added_index = add_user(slot, user_list, pid, user_id, pipe_server_to_child[1], pipe_server_from_child[0]);
-                printf("\nNew User Added: %s\n\n", user_id);
-                int pipe_child_from_client[2];
-                int pipe_child_to_client[2];
                 //pipes_reading_from_client is a pipe that is assigned to m_fd_to_user
             }
         }
@@ -418,7 +419,7 @@ int main(int argc, char * argv[])
 
                     //printf("parsed user command: %d\n", command);
                     if(command == P2P){
-                        printf("p2p user command read correctly\n");
+                      send_p2p_msg(i, user_list, buf);
                     }
                     else if(command == LIST){
                         printf("list user command read correctly\n");
@@ -427,13 +428,8 @@ int main(int argc, char * argv[])
                         printf("exit user command read correctly\n");
                     }
                     else{
-                      printf("Calling broadcast msg\n");
-                          if(broadcast_msg(user_list, buf, user_list[i].m_user_id)!=-1){
-                              printf("Broadcast message returned 0\n");
-                          }
-                          else{
-                            printf("Broadcast message error\n");
-                          }
+                          broadcast_msg(user_list, buf, user_list[i].m_user_id);
+
                     }
                     memset(buf, '\0', MAX_MSG);
                 }
@@ -495,7 +491,7 @@ int main(int argc, char * argv[])
                 exit(0);
             }
             else{
-              //broadcast admin
+                broadcast_msg(user_list, buf, "admin");
             }
 
         }
