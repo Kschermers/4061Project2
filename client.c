@@ -44,6 +44,8 @@ void main(int argc, char * argv[]) {
 	if(connect_to_server("ok", argv[1], pipe_from_child, pipe_to_child) == -1) {
 		exit(-1);
 	}
+
+    print_prompt(argv[1]);
 	//printf("DEBUG: connection success!\n\n");
 
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
