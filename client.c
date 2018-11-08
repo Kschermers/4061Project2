@@ -52,19 +52,31 @@ void main(int argc, char * argv[]) {
 	// set up buffers
 	char buf_send[MAX_MSG];
 	char buf_recieve[MAX_MSG];
+	flags = fcntl(pipe_from_child[0], F_GETFL, 0);
+	fcntl(pipe_from_child[0], F_SETFL, flags | O_NONBLOCK);
+
+	flags = fcntl(pipe_from_child[1], F_GETFL, 0);
+	fcntl(pipe_from_child[1], F_SETFL, flags | O_NONBLOCK);
+
+	flags = fcntl(pipe_from_child[0], F_GETFL, 0);
+	fcntl(pipe_from_child[0], F_SETFL, flags | O_NONBLOCK);
+
+	flags = fcntl(pipe_from_child[1], F_GETFL, 0);
+	fcntl(pipe_from_child[1], F_SETFL, flags | O_NONBLOCK);
 
 	close(pipe_from_child[1]);
 	close(pipe_to_child[0]);
 
-	flags = fcntl(pipe_from_child[0], F_GETFL, 0);
-	fcntl(pipe_from_child[0], F_SETFL, flags | O_NONBLOCK);
+
 
 
 	while(1){
 		// poll pipe retrieved and print it to stdout
   //      memset(buf_recieve, '\0', MAX_MSG);
+		printf("loop\n");
 				int bytesRead = read(pipe_from_child[0], buf_recieve, MAX_MSG);
         if(bytesRead > 0){
+
             printf("%s\n", buf_recieve);
 						memset(buf_recieve, '\0', MAX_MSG);
         }
@@ -73,6 +85,7 @@ void main(int argc, char * argv[]) {
 		// Poll stdin (input from the terminal) and send it to server (child process) via pipe
       //  memset(buf_send, '\0', MAX_MSG);
 		int bytesRead2 = read(0, buf_send, MAX_MSG);
+		printf("i'm non blocking\n");
         if(bytesRead2 > 0){
             write(pipe_to_child[1], buf_send, MAX_MSG);
 						memset(buf_send, '\0', MAX_MSG);
