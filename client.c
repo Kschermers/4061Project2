@@ -77,10 +77,18 @@ void main(int argc, char * argv[]) {
   //      memset(buf_recieve, '\0', MAX_MSG);
 	//	printf("loop\n");
 				int bytesRead = read(pipe_from_child[0], buf_recieve, MAX_MSG);
+        //if(bytesRead > 0){
+        //    printf("%s\n", buf_recieve);
+        //}
         if(bytesRead > 0){
-
-            printf("%s\n", buf_recieve);
+            
+            //if (strcmp(buf_recieve,"!!!kick!!!") == 0) {
+              //  printf("kicked from server :(\n");
+                exit(0);
+            //} else {
+            printf("2%s\n", buf_recieve);
 						memset(buf_recieve, '\0', MAX_MSG);
+            // }
         }
 
 
