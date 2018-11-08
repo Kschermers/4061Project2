@@ -226,7 +226,7 @@ int extract_name(char * buf, char * user_name)
     char * tokens[16];
     strcpy(inbuf, buf);
 
-    int token_cnt = parse_line(inbuf, tokens, " ");
+    int token_cnt = parse_line(inbuf, tokens," ");
 
     if(token_cnt >= 2) {
         strcpy(user_name, tokens[1]);
@@ -242,7 +242,7 @@ int extract_text(char *buf, char * text)
     char * tokens[16];
     strcpy(inbuf, buf);
 
-    int token_cnt = parse_line(buf, tokens, " ");
+    int token_cnt = parse_line(buf, tokens," ");
 
     if(token_cnt >= 3) {
         strcpy(text, tokens[2]);
