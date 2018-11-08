@@ -460,10 +460,6 @@ int main(int argc, char * argv[])
                 if(extract_name(buf, name_buf) >= 0){
                     int index = find_user_index(user_list, name_buf);
                     if(index>=0){
-                        //char kick_buf[MAX_MSG];
-                        //write("!!!kick!!!",kick_buf,MAX_MSG);
-                        //send_p2p_msg(index, user_list,kick_buf);
-                        //memset(kick_buf, '\0', MAX_MSG);
                         kick_user(index, user_list);
                         printf("user '%s' has been kicked\n",name_buf);
                         memset(name_buf, '\0', MAX_MSG);
@@ -475,7 +471,7 @@ int main(int argc, char * argv[])
                 memset(buf, '\0', MAX_MSG);
             }
             else if(command == EXIT){
-                //printf("exit server command read correctly\n");
+                printf("exit server command read correctly\n");
                 int j;
                 for(j = 0; j<MAX_USER; j++){
                     if(user_list[j].m_status == SLOT_FULL){
