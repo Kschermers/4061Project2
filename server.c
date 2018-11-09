@@ -237,15 +237,20 @@ int extract_text(char *buf, char * text)
 {
     char inbuf[MAX_MSG];
     char * tokens[16];
+    char * s = NULL;
     strcpy(inbuf, buf);
-
-    int token_cnt = parse_line(buf, tokens," ");
-
+    
+    int token_cnt = parse_line(inbuf, tokens, " ");
+    
     if(token_cnt >= 3) {
-        strcpy(text, tokens[2]);
+        //Find " "
+        s = strchr(buf, ' ');
+        s = strchr(s+1, ' ');
+        
+        strcpy(text, s+1);
         return 0;
     }
-
+    
     return -1;
 }
 
