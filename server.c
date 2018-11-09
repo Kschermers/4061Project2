@@ -479,17 +479,11 @@ int main(int argc, char * argv[])
                 int j;
                 for(j = 0; j<MAX_USER; j++){
                     if(user_list[j].m_status == SLOT_FULL){
-                        char name_buf[MAX_MSG];
-                        if(extract_name(buf, name_buf) >= 0){
-                            int index = find_user_index(user_list, name_buf);
-                            if(index>=0){
-                                printf("\nKicking user: %s\n", name_buf);
-                                kick_user(index, user_list);
-                                memset(name_buf, '\0', MAX_MSG);
-                            }
-                        }
+                        printf("\nKicking user: %s\n", user_list[j].m_user_id);
+                        kick_user(j, user_list);
                     }
                 }
+                printf("Exiting server process\n");
                 memset(buf, '\0', MAX_MSG);
                 exit(0);
             }
