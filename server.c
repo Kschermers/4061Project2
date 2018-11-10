@@ -239,18 +239,18 @@ int extract_text(char *buf, char * text)
     char * tokens[16];
     char * s = NULL;
     strcpy(inbuf, buf);
-    
+
     int token_cnt = parse_line(inbuf, tokens, " ");
-    
+
     if(token_cnt >= 3) {
         //Find " "
         s = strchr(buf, ' ');
         s = strchr(s+1, ' ');
-        
+
         strcpy(text, s+1);
         return 0;
     }
-    
+
     return -1;
 }
 
@@ -333,7 +333,7 @@ int main(int argc, char * argv[])
         int slot = find_empty_slot(user_list);
         char buf[MAX_MSG];
         char user_id[MAX_USER_ID];
-    
+
         int pipe_child_from_client[2];
         int pipe_child_to_client[2];
         if(slot>=0 && get_connection(user_id,
@@ -358,10 +358,6 @@ int main(int argc, char * argv[])
             flags = fcntl(pipe_server_to_child[1], F_GETFL, 0);
             fcntl(pipe_server_to_child[1], F_SETFL, flags | O_NONBLOCK);
 
-            //TODO
-            // close(pipe_server_to_child[1]);
-            // close(pipe_server_from_child[0]);
-
             flags = fcntl(pipe_child_to_client[0], F_GETFL, 0);
             fcntl(pipe_child_to_client[0], F_SETFL, flags | O_NONBLOCK);
 
@@ -374,11 +370,15 @@ int main(int argc, char * argv[])
             flags = fcntl(pipe_child_from_client[0], F_GETFL, 0);
             fcntl(pipe_child_from_client[0], F_SETFL, flags | O_NONBLOCK);
 
-            
-        	pid = fork();
+
+        	  pid = fork();
             if(pid == 0){
                 close(pipe_child_to_client[0]);
                 close(pipe_child_from_client[1]);
+
+                close(pipe_server_from_child[0]);
+                close(pipe_server_to_child[1]);
+
                 // Child process: poll users and SERVER
                 //when read = 0 send message to server, pipe is broken
                 while(1){
@@ -397,6 +397,9 @@ int main(int argc, char * argv[])
                     usleep(100);
                 }
             }else{
+                close(pipe_server_from_child[1]);
+                close(pipe_server_to_child[0]);
+
                 // Server process: Add a new user information into an empty slot
                 add_user(slot, user_list, pid-1, user_id, pipe_server_to_child[1], pipe_server_from_child[0]);
             }
@@ -447,8 +450,10 @@ int main(int argc, char * argv[])
                   buf[k]='\0';
                   break;
               }
-              print_prompt("admin");
+
           }
+          print_prompt("admin");
+
             enum command_type command = get_command_type(buf);
             //printf("parsed server command: %d\n", command);
             if(command==LIST){
@@ -488,9 +493,9 @@ int main(int argc, char * argv[])
                 exit(0);
             }
             else{
-                broadcast_msg(user_list, buf, "\nadmin");
+                broadcast_msg(user_list, buf, "admin");
             }
-        }       
+        }
 		/* ------------------------YOUR CODE FOR MAIN--------------------------------*/
          usleep(100);
 	}
