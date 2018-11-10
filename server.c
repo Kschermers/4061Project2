@@ -396,6 +396,10 @@ int main(int argc, char * argv[])
                 while(1){
                     // POLLING USER:
                 	int bytesRead = read(pipe_child_from_client[0], buf, MAX_MSG);
+                    if(bytesRead==0){
+                        write(pipe_server_from_child[1], "your child has died", 20);
+                        exit(0);
+                    }
                     if(bytesRead>0){
                         if(strcmp(buf, "your child has died") == 0){
                             write(pipe_server_from_child[1], buf, MAX_MSG);
@@ -408,9 +412,7 @@ int main(int argc, char * argv[])
                     //POLLING SERVER:
                     int bytesRead2 = read(pipe_server_to_child[0], buf, MAX_MSG);
                     if(bytesRead2 > 0){
-                        if(write(pipe_child_to_client[1], buf, MAX_MSG)==-1){
-                            
-                        }
+                      write(pipe_child_to_client[1], buf, MAX_MSG);
                       memset(buf, '\0', MAX_MSG);
                     }
                     usleep(100);
@@ -476,18 +478,15 @@ int main(int argc, char * argv[])
             print_prompt("admin");
             enum command_type command = get_command_type(buf);
             if(command==LIST){
-                //printf("list server command read correctly\n");
                 list_users(-1, user_list);
                 print_prompt("admin");
             }
             else if(command == KICK){
-                //printf("kick server command read correctly\n");
                 char name_buf[MAX_MSG];
                 if(extract_name(buf, name_buf) >= 0){
                     int index = find_user_index(user_list, name_buf);
                     if(index>=0){
                         kick_user(index, user_list);
-                        printf("\nuser '%s' has been kicked\n",name_buf);
                         print_prompt("admin");
                         memset(name_buf, '\0', MAX_MSG);
                     }
@@ -501,11 +500,9 @@ int main(int argc, char * argv[])
                 int j;
                 for(j = 0; j<MAX_USER; j++){
                     if(user_list[j].m_status == SLOT_FULL){
-                        printf("\nKicking user: %s\n", user_list[j].m_user_id);
                         kick_user(j, user_list);
                     }
                 }
-                printf("Exiting server process\n");
                 memset(buf, '\0', MAX_MSG);
                 exit(0);
             }
