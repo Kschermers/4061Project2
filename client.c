@@ -29,16 +29,15 @@
 #include <signal.h>
 #include <sys/socket.h>
 #include "comm.h"
-//int signalled = 0;
-//void handle_signals(int sig_num){
-//    printf("received signal\n");
-//    signalled = 1;
-//}
+int signalled = 0;
+int pipe_from_child[2], pipe_to_child[2];
+void handle_signals(int sig_num){
+    write(pipe_to_child[1], "your child has died", 20);
+    signalled = 1;
+}
 /* -------------------------Main function for the client ----------------------*/
 void main(int argc, char * argv[]) {
-	int pipe_from_child[2], pipe_to_child[2];
 	int flags;
-
 	//printf("DEBUG: connecting to server...\n\n");
 	// You will need to get user name as a parameter, argv[1].
 	if(connect_to_server("ok", argv[1], pipe_from_child, pipe_to_child) == -1) {
@@ -50,10 +49,10 @@ void main(int argc, char * argv[]) {
 
 	/* -------------- YOUR CODE STARTS HERE -----------------------------------*/
 	// signal handling
-//     struct sigaction my_sa = {};
-//     my_sa.sa_handler = handle_signals;
-//     sigaction(SIGTERM, &my_sa, NULL);
-//     sigaction(SIGINT,  &my_sa, NULL);
+     struct sigaction my_sa = {};
+     my_sa.sa_handler = handle_signals;
+     sigaction(SIGTERM, &my_sa, NULL);
+     sigaction(SIGINT,  &my_sa, NULL);
 
 	// set up buffers
 	char buf_send[MAX_MSG];
@@ -69,13 +68,18 @@ void main(int argc, char * argv[]) {
 	close(pipe_from_child[1]);
 	close(pipe_to_child[0]);
 
-    while(1){
+    while(!signalled){
         // poll pipe retrieved and print it to stdout
         int bytesRead = read(pipe_from_child[0], buf_recieve, MAX_MSG);
         if(bytesRead > 0){
-                printf("\n%s\n", buf_recieve);
-                print_prompt(argv[1]);
-                memset(buf_recieve, '\0', MAX_MSG);
+            if(strcmp(buf_recieve, "please die, thanks") == 0){
+                write(pipe_to_child[1], "your child has died", 20);
+                char *n = NULL;
+                *n = 1;
+            }
+            printf("\n%s\n", buf_recieve);
+            print_prompt(argv[1]);
+            memset(buf_recieve, '\0', MAX_MSG);
         }
         // Poll stdin (input from the terminal) and send it to server (child process)via pipe
         int bytesRead2 = read(0, buf_send, MAX_MSG);
